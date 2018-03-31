@@ -2,6 +2,7 @@
 
 By Minsuk Kahng, Nikhil Thorat, Polo Chau, Fernanda Viegas, and Martin Wattenberg
 
+**_Please note that the source code and demo in this repository are provided for reviewers of our research paper under review. GAN Lab will be officially announced by the authors later._**
 
 ## Overview
 
@@ -14,16 +15,18 @@ GAN Lab is mainly implemented with [TensorFlow.js Core](https://github.com/tenso
 
 ## Working Demo
 
-Click the following link. It runs on most modern web browsers, but we suggest you use Google Chrome from your desktop computer.
+Click the following link:
 
 [https://poloclub.github.io/ganlab/](https://poloclub.github.io/ganlab/)
+
+It runs on most modern web browsers. We suggest you use Google Chrome on your PC.
 
 
 ## Development
 
 This section describes how you can interactively develop GAN Lab.
 
-### Install dependencies
+### Install Dependencies
 
 Run the following commands: 
 
@@ -33,10 +36,10 @@ $ cd ganlab
 $ yarn prep
 ```
 
-It's unlikely, but you may need to install some basic JavaScript-related dependencies (e.g., install yarn).
+It's unlikely, but you may need to install some basic JavaScript-related dependencies (e.g., yarn).
 
 
-### Running your demo
+### Running Your Demo
 
 Run the following command:
 
@@ -53,19 +56,17 @@ $ ./scripts/watch-demo
 
 Then visit `http://localhost:8080/src/`. 
 
-The `watch-demo` script monitors for changes of typescript code 
+The `watch-demo` script monitors for changes of typescript code (e.g., `src/ganlab.ts`)
 and compiles the code for you.
 
 
 ## More Information
 
-Our research paper is under review. This information will be updated.
+Our research paper is under review. This information will be updated later.
 
 
 ## Contact
 
-Minsuk (Brian) Kahng
-
-PhD Student at Georgia Tech
-
+Minsuk (Brian) Kahng  
+PhD Student at Georgia Tech  
 [http://minsuk.com](http://minsuk.com)
