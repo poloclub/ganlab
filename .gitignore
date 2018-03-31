@@ -1,5 +1,2 @@
 node_modules/
-polymer-spec.ts
-scripts/
 src/bundle.js
-support.js
