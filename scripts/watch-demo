@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Copyright 2017 Google Inc. All Rights Reserved.
+// Modifications Copyright 2018 Minsuk Kahng.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,28 +21,13 @@ const opn = require('opn');
 const shell = require('shelljs');
 var argv = require('minimist')(process.argv.slice(2));
 
-/** List of vue demos. */
-const VUE_DEMOS = new Set(['game_of_life', 'latent-space-explorer']);
-
-const demoPath = argv._[0];
-
-const demoFolder = path.basename(demoPath);
+const demoPath = 'src';
 const outputPath = path.join(demoPath, 'bundle.js')
-const tsPath = path.join(demoPath, demoFolder + '.ts');
+const tsPath = path.join(demoPath, 'ganlab.ts');
 
-if (VUE_DEMOS.has(demoFolder)) {
-  shell.cd('demos');
-  const cmd = `./node_modules/.bin/poi ${demoFolder} -o`;
-  if (shell.exec(cmd).code !== 0) {
-    shell.echo(`Failed building ${demoFolder}`);
-    shell.exit(1);
-  }
-  return;
-}
+const cmd = path.join('node_modules', '.bin', 'watchify');
 
-const cmd = path.join('demos', 'node_modules', '.bin', 'watchify');
-
-const tsifyCmd = ['tsify', '-p', 'demos/tsconfig-dev.json'];
+const tsifyCmd = ['tsify', '-p', 'tsconfig-dev.json'];
 
 // tsifyCmd is passed to the watchify command, so the arguments should be
 // wrapped in [].
