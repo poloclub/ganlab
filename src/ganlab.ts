@@ -7,7 +7,7 @@ import { line } from 'd3-shape';
 import * as d3Transition from 'd3-transition';
 
 import { PolymerElement, PolymerHTMLElement } from '../polymer-spec';
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import * as ganlab_input_providers from './ganlab_input_providers';
 import * as ganlab_drawing from './ganlab_drawing';
@@ -27,7 +27,7 @@ const EPOCH_INTERVAL = 2;
 const SLOW_INTERVAL_MS = 1250;
 
 // Hack to prevent error when using grads (doesn't allow this in model).
-//let dVariables: dl.Variable[];
+//let dVariables: tf.Variable[];
 //let numDiscriminatorLayers: number;
 
 interface ManifoldCell {
@@ -57,10 +57,10 @@ const GANLabPolymer: new () => PolymerHTMLElement = PolymerElement({
 class GANLab extends GANLabPolymer {
   private iterationCount: number;
 
-  private noiseProvider: dl.InputProvider;
-  private trueSampleProvider: dl.InputProvider;
-  private uniformNoiseProvider: dl.InputProvider;
-  private uniformInputProvider: dl.InputProvider;
+  private noiseProvider: ganlab_input_providers.InputProvider;
+  private trueSampleProvider: ganlab_input_providers.InputProvider;
+  private uniformNoiseProvider: ganlab_input_providers.InputProvider;
+  private uniformInputProvider: ganlab_input_providers.InputProvider;
 
   private model: ganlab_models.GANLabModel;
   private noiseSize: number;
@@ -819,13 +819,13 @@ class GANLab extends GANLabPolymer {
         'tooltip-d-generated-samples');
     }
 
-    dl.tidy(() => {
+    tf.tidy(() => {
       let gResultData: Float32Array;
       if (!keepIterating || this.iterationCount === 1 || this.slowMode ||
         this.iterationCount % VIS_INTERVAL === 0) {
         const gDataBefore: Array<[number, number]> = [];
         const noiseFixedBatch =
-          this.noiseProviderFixed.getNextCopy() as dl.Tensor2D;
+          this.noiseProviderFixed.getNextCopy() as tf.Tensor2D;
         const gResult = this.model.generator(noiseFixedBatch);
         gResultData = gResult.dataSync() as Float32Array;
         for (let j = 0; j < gResultData.length / 2; ++j) {
@@ -873,11 +873,11 @@ class GANLab extends GANLabPolymer {
 
     if (!keepIterating || this.iterationCount === 1 || this.slowMode ||
       this.iterationCount % VIS_INTERVAL === 0) {
-      dl.tidy(() => {
+      tf.tidy(() => {
         const noiseBatch =
-          this.noiseProviderFixed.getNextCopy() as dl.Tensor2D;
+          this.noiseProviderFixed.getNextCopy() as tf.Tensor2D;
         const trueSampleBatch =
-          this.trueSampleProviderFixed.getNextCopy() as dl.Tensor2D;
+          this.trueSampleProviderFixed.getNextCopy() as tf.Tensor2D;
         const truePred = this.model.discriminator(trueSampleBatch);
         const generatedPred =
           this.model.discriminator(this.model.generator(noiseBatch));
@@ -933,13 +933,13 @@ class GANLab extends GANLabPolymer {
 
     // Train Discriminator.
     let dCostVal: number = null;
-    dl.tidy(() => {
+    tf.tidy(() => {
       const kDSteps = type === 'D' ? 1 : (type === 'G' ? 0 : this.kDSteps);
       for (let j = 0; j < kDSteps; j++) {
         const dCost = this.model.dOptimizer.minimize(() => {
-          const noiseBatch = this.noiseProvider.getNextCopy() as dl.Tensor2D;
+          const noiseBatch = this.noiseProvider.getNextCopy() as tf.Tensor2D;
           const trueSampleBatch =
-            this.trueSampleProvider.getNextCopy() as dl.Tensor2D;
+            this.trueSampleProvider.getNextCopy() as tf.Tensor2D;
           const truePred = this.model.discriminator(trueSampleBatch);
           const generatedPred =
             this.model.discriminator(this.model.generator(noiseBatch));
@@ -983,10 +983,10 @@ class GANLab extends GANLabPolymer {
 
       // Visualize discriminator's output.
       const dData: number[] = [];
-      dl.tidy(() => {
+      tf.tidy(() => {
         for (let i = 0; i < NUM_GRID_CELLS * NUM_GRID_CELLS / BATCH_SIZE; ++i) {
           const inputBatch =
-            this.uniformInputProvider.getNextCopy() as dl.Tensor2D;
+            this.uniformInputProvider.getNextCopy() as tf.Tensor2D;
           const result = this.model.discriminator(inputBatch);
           const resultData = result.dataSync();
           for (let j = 0; j < resultData.length; ++j) {
@@ -1071,13 +1071,13 @@ class GANLab extends GANLabPolymer {
 
     // Visualize generated samples before training.
     const gradData: Array<[number, number, number, number]> = [];
-    dl.tidy(() => {
+    tf.tidy(() => {
       let gResultData: Float32Array;
       if (!keepIterating || this.iterationCount === 1 || this.slowMode ||
         this.iterationCount % VIS_INTERVAL === 0) {
         const gDataBefore: Array<[number, number]> = [];
         const noiseFixedBatch =
-          this.noiseProviderFixed.getNextCopy() as dl.Tensor2D;
+          this.noiseProviderFixed.getNextCopy() as tf.Tensor2D;
         const gResult = this.model.generator(noiseFixedBatch);
         gResultData = gResult.dataSync() as Float32Array;
         for (let j = 0; j < gResultData.length / 2; ++j) {
@@ -1099,9 +1099,9 @@ class GANLab extends GANLabPolymer {
       // Compute and store gradients before training.
       if (!keepIterating || this.iterationCount === 1 || this.slowMode ||
         this.iterationCount % VIS_INTERVAL === 0) {
-        const gradFunction = dl.grad(this.model.discriminator);
+        const gradFunction = tf.grad(this.model.discriminator);
         const noiseFixedBatchForGrad =
-          this.noiseProviderFixed.getNextCopy() as dl.Tensor2D;
+          this.noiseProviderFixed.getNextCopy() as tf.Tensor2D;
         const gSamples = this.model.generator(noiseFixedBatchForGrad);
         const grad = gradFunction(gSamples);
         const gGradient = grad.dataSync();
@@ -1118,10 +1118,10 @@ class GANLab extends GANLabPolymer {
     // Train generator.
     const kGSteps = type === 'G' ? 1 : (type === 'D' ? 0 : this.kGSteps);
     let gCostVal: number = null;
-    dl.tidy(() => {
+    tf.tidy(() => {
       for (let j = 0; j < kGSteps; j++) {
         const gCost = this.model.gOptimizer.minimize(() => {
-          const noiseBatch = this.noiseProvider.getNextCopy() as dl.Tensor2D;
+          const noiseBatch = this.noiseProvider.getNextCopy() as tf.Tensor2D;
           const pred =
             this.model.discriminator(this.model.generator(noiseBatch));
           return this.model.gLoss(pred);
@@ -1202,7 +1202,7 @@ class GANLab extends GANLabPolymer {
       }
 
       // Visualize manifold for 1-D or 2-D noise.
-      dl.tidy(() => {
+      tf.tidy(() => {
         if (this.noiseSize <= 2) {
           const manifoldData: Float32Array[] = [];
           const numBatches = Math.ceil(Math.pow(
@@ -1211,7 +1211,7 @@ class GANLab extends GANLabPolymer {
             NUM_MANIFOLD_CELLS + 1, this.noiseSize) * this.noiseSize;
           for (let k = 0; k < numBatches; ++k) {
             const noiseBatch =
-              this.uniformNoiseProvider.getNextCopy() as dl.Tensor2D;
+              this.uniformNoiseProvider.getNextCopy() as tf.Tensor2D;
             const result = this.model.generator(noiseBatch);
             const maniResult: Float32Array = result.dataSync() as Float32Array;
             for (let i = 0; i < (k + 1 < numBatches ?
@@ -1286,9 +1286,9 @@ class GANLab extends GANLabPolymer {
       });
 
       const gData: Array<[number, number]> = [];
-      dl.tidy(() => {
+      tf.tidy(() => {
         const noiseFixedBatch =
-          this.noiseProviderFixed.getNextCopy() as dl.Tensor2D;
+          this.noiseProviderFixed.getNextCopy() as tf.Tensor2D;
         const gResult = this.model.generator(noiseFixedBatch);
         const gResultData = gResult.dataSync();
         for (let i = 0; i < gResultData.length / 2; ++i) {

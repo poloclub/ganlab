@@ -1,7 +1,12 @@
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
+
+export interface InputProvider {
+  getNextCopy(): tf.Tensor2D;
+  disposeCopy(copy: tf.Tensor);
+}
 
 export abstract class GANLabInputProviderBuilder {
-  protected atlas: dl.Tensor2D;
+  protected atlas: tf.Tensor2D;
   protected providerCounter: number;
 
   constructor(protected batchSize: number) {
@@ -10,7 +15,7 @@ export abstract class GANLabInputProviderBuilder {
 
   protected abstract generateAtlas(): void;
 
-  abstract getInputProvider(fixStarting?: boolean): dl.InputProvider;
+  abstract getInputProvider(fixStarting?: boolean): InputProvider;
 }
 
 export class GANLabNoiseProviderBuilder extends
@@ -25,18 +30,18 @@ export class GANLabNoiseProviderBuilder extends
   generateAtlas() {
     if (this.noiseType === '1D Gaussian' ||
       this.noiseType === '2D Gaussian') {
-      this.atlas = dl.truncatedNormal(
+      this.atlas = tf.truncatedNormal(
         [this.atlasSize, this.noiseSize], 0.5, 0.25);
     } else {
-      this.atlas = dl.randomUniform(
+      this.atlas = tf.randomUniform(
         [this.atlasSize, this.noiseSize], 0.0, 1.0);
     }
   }
 
-  getInputProvider(fixStarting?: boolean): dl.InputProvider {
+  getInputProvider(fixStarting?: boolean): InputProvider {
     const provider = this;
     return {
-      getNextCopy(): dl.Tensor2D {
+      getNextCopy(): tf.Tensor2D {
         provider.providerCounter++;
         return provider.atlas.slice(
           [fixStarting ? 0 :
@@ -45,7 +50,7 @@ export class GANLabNoiseProviderBuilder extends
           [provider.batchSize, provider.noiseSize]
         );
       },
-      disposeCopy(copy: dl.Tensor) {
+      disposeCopy(copy: tf.Tensor) {
         copy.dispose();
       }
     };
@@ -78,13 +83,13 @@ export class GANLabTrueSampleProviderBuilder extends
       this.inputAtlasList.push(distribution[0]);
       this.inputAtlasList.push(distribution[1]);
     }
-    this.atlas = dl.Tensor2D.new([this.atlasSize, 2], this.inputAtlasList);
+    this.atlas = tf.tensor2d(this.inputAtlasList, [this.atlasSize, 2]);
   }
 
-  getInputProvider(fixStarting?: boolean): dl.InputProvider {
+  getInputProvider(fixStarting?: boolean): InputProvider {
     const provider = this;
     return {
-      getNextCopy(): dl.Tensor2D {
+      getNextCopy(): tf.Tensor2D {
         provider.providerCounter++;
         return provider.atlas.slice(
           [fixStarting ? 0 :
@@ -93,7 +98,7 @@ export class GANLabTrueSampleProviderBuilder extends
           [provider.batchSize, 2]
         );
       },
-      disposeCopy(copy: dl.Tensor) {
+      disposeCopy(copy: tf.Tensor) {
         copy.dispose();
       }
     };
@@ -130,15 +135,14 @@ export class GANLabUniformNoiseProviderBuilder extends
     while ((inputAtlasList.length / this.noiseSize) % this.batchSize > 0) {
       inputAtlasList.push(0.5);
     }
-    this.atlas = dl.Tensor2D.new(
-      [inputAtlasList.length / this.noiseSize, this.noiseSize],
-      inputAtlasList);
+    this.atlas = tf.tensor2d(inputAtlasList,
+      [inputAtlasList.length / this.noiseSize, this.noiseSize]);
   }
 
-  getInputProvider(): dl.InputProvider {
+  getInputProvider(): InputProvider {
     const provider = this;
     return {
-      getNextCopy(): dl.Tensor2D {
+      getNextCopy(): tf.Tensor2D {
         provider.providerCounter++;
         if (provider.providerCounter * provider.batchSize >
           Math.pow(provider.numManifoldCells + 1, provider.noiseSize)) {
@@ -152,7 +156,7 @@ export class GANLabUniformNoiseProviderBuilder extends
           ],
           [provider.batchSize, provider.noiseSize]);
       },
-      disposeCopy(copy: dl.Tensor) {
+      disposeCopy(copy: tf.Tensor) {
         copy.dispose();
       }
     };
@@ -197,14 +201,14 @@ export class GANLabUniformSampleProviderBuilder extends
         inputAtlasList.push((j + 0.5) / this.numGridCells);
       }
     }
-    this.atlas = dl.Tensor2D.new(
-      [this.numGridCells * this.numGridCells, 2], inputAtlasList);
+    this.atlas = tf.tensor2d(inputAtlasList,
+      [this.numGridCells * this.numGridCells, 2]);
   }
 
-  getInputProvider(): dl.InputProvider {
+  getInputProvider(): InputProvider {
     const provider = this;
     return {
-      getNextCopy(): dl.Tensor2D {
+      getNextCopy(): tf.Tensor2D {
         provider.providerCounter++;
         return provider.atlas.slice(
           [
@@ -214,7 +218,7 @@ export class GANLabUniformSampleProviderBuilder extends
           ],
           [provider.batchSize, 2]);
       },
-      disposeCopy(copy: dl.Tensor) {
+      disposeCopy(copy: tf.Tensor) {
         copy.dispose();
       }
     };
