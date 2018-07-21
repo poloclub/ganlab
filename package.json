@@ -1,6 +1,6 @@
 {
   "name": "ganlab",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An Interactive, Visual Experimentation Tool for GANs",
   "private": true,
   "dependencies": {
@@ -52,6 +52,7 @@
     "@bower_components/polymer": "Polymer/polymer#1.*.*",
     "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.2.0",
     "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24",
+    "@tensorflow/tfjs-core": "^0.12.0",
     "chart.js": "~2.7.1",
     "tslint": "~5.8.0"
   },
@@ -77,7 +78,6 @@
     "d3-selection": "~1.2.0",
     "d3-shape": "~1.2.0",
     "d3-transition": "~1.1.1",
-    "deeplearn": "~0.5.0",
     "fetch-mock": "~5.13.1",
     "handlebars": "~4.0.11",
     "highlight.js": "9.12.0",
