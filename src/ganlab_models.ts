@@ -100,6 +100,20 @@ export class GANLabModel {
     batchSize = this.batchSize;
   }
 
+  async loadPretrainedWeights(loadedModel: tf.io.ModelArtifacts) {
+    const decoded = tf.io.decodeWeights(
+      loadedModel.weightData, loadedModel.weightSpecs);
+
+    this.dVariables.forEach((v: tf.Variable, i) => {
+      v.assign(decoded[`d-${i}`]);
+    });
+    this.gVariables.forEach((v: tf.Variable, i) => {
+      v.assign(decoded[`g-${i}`]);
+    });
+
+    dVariables = this.dVariables;
+  }
+
   generator(noiseTensor: tf.Tensor2D): tf.Tensor2D {
     const gfc0W = this.gVariables[0] as tf.Tensor2D;
     const gfc0B = this.gVariables[1];

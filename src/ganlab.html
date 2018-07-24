@@ -105,6 +105,11 @@
       position: relative;
     }
 
+    #save {
+      float: right;
+      margin-top: 16px;
+    }
+
     #main-panel {
       display: flex;
     }
@@ -581,6 +586,13 @@
           Epoch:
           <span id="iteration-count">0</span>
         </div>
+
+        <div id="save">
+          <button class="mdl-button mdl-js-button mdl-button--icon"
+            id="save-model" title="Save model" style="margin-left: 5px">
+            <i class="material-icons">save_alt</i>
+          </button>
+        </div>
       </div>
 
       <div id="main-panel">
@@ -899,8 +911,8 @@
               </div>
 
               <div id="component-true-distribution" class="model-component"
-                style="top: 90px; left: 295px; width: 85px">
-                <div class="config-item" style="width: 85px">
+                style="top: 70px; left: 275px; width: 105px">
+                <div style="width: 105px">
                   <div class="component-dropdown-label">Distribution</div>
                   <paper-dropdown-menu no-animations no-label-float>
                     <paper-listbox attr-for-selected="value" id="shape-dropdown" class="dropdown-content" selected="{{selectedShapeName}}">

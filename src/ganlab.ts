@@ -26,10 +26,6 @@ const VIS_INTERVAL = 50;
 const EPOCH_INTERVAL = 2;
 const SLOW_INTERVAL_MS = 1250;
 
-// Hack to prevent error when using grads (doesn't allow this in model).
-//let dVariables: tf.Variable[];
-//let numDiscriminatorLayers: number;
-
 interface ManifoldCell {
   points: Float32Array[];
   area?: number;
@@ -255,15 +251,35 @@ class GANLab extends GANLabPolymer {
       });
 
     this.shapeNames = [
-      'Line', 'Gaussian', 'Two Gaussians', 'Ring', 'Three Regions', 'Drawing'];
+      'Line', 'Gaussian', 'Two Gaussians', 'Ring', 'Ring (pre-trained)', 
+      'Three Regions', 'Drawing'];
     this.selectedShapeName = 'Two Gaussians';
     this.querySelector('#shape-dropdown')!.addEventListener(
       // tslint:disable-next-line:no-any event has no type
       'iron-activate', (event: any) => {
         this.selectedShapeName = event.detail.selected;
+
         if (this.selectedShapeName === 'Drawing') {
           this.pause();
           this.drawing.prepareDrawing();
+        } else if (this.selectedShapeName === 'Ring (pre-trained)') {
+          this.selectedShapeName = 'Ring';
+
+          const filename = 'pretrained_ring';
+          this.loadPretrainedWeightFile(filename).then((loadedModel) => {
+            const loadedIterCount = this.iterationCount;
+
+            this.createExperiment();
+            this.model.loadPretrainedWeights(loadedModel);
+
+            // Run one iteration for visualization.
+            this.isPlaying = true;
+            this.iterateTraining(false);
+            this.isPlaying = false;
+
+            this.iterationCount = loadedIterCount;
+            this.iterCountElement.innerText = this.zeroPad(this.iterationCount);
+          });
         } else {
           this.createExperiment();
         }
@@ -359,6 +375,9 @@ class GANLab extends GANLabPolymer {
     this.iterCountElement =
       document.getElementById('iteration-count') as HTMLElement;
 
+    document.getElementById('save-model')!.addEventListener(
+        'click', () => this.onClickSaveModelButton());
+  
     // Visualization.
     this.plotSizePx = 400;
     this.mediumPlotSizePx = 150;
@@ -533,7 +552,8 @@ class GANLab extends GANLabPolymer {
           ];
         }
       }
-      case 'Ring': {
+      case 'Ring':
+      case 'Ring (pre-trained)': {
         return [
           0.5 + 0.3 * Math.cos(rand * Math.PI * 2) +
           0.025 * ganlab_input_providers.randNormal(),
@@ -1359,7 +1379,7 @@ class GANLab extends GANLabPolymer {
     if (this.iterationCount >= 999999) {
       this.isPlaying = false;
     }
-
+    
     requestAnimationFrame(() => this.iterateTraining(true));
   }
 
@@ -1540,6 +1560,77 @@ class GANLab extends GANLabPolymer {
       this.highlightedTooltip.classList.remove('shown');
       this.highlightedTooltip.classList.remove('highlighted');
     }
+  }
+
+  private async onClickSaveModelButton() {
+    const dTensors: tf.NamedTensorMap = 
+      this.model.dVariables.reduce((obj, item, i) => {
+        obj[`d-${i}`] = item;
+        return obj;
+      }, {});
+    const gTensors: tf.NamedTensorMap = 
+      this.model.gVariables.reduce((obj, item, i) => {
+        obj[`g-${i}`] = item;
+        return obj;
+      }, {});
+    const tensors: tf.NamedTensorMap = {...dTensors, ...gTensors};
+
+    const modelInfo: {} = {
+      'shape_name': this.selectedShapeName,
+      'iter_count': this.iterationCount,
+      'config': {
+        selectedNoiseType: this.selectedNoiseType,
+        noiseSize: this.noiseSize,
+        numGeneratorLayers: this.numGeneratorLayers,
+        numDiscriminatorLayers: this.numDiscriminatorLayers,
+        numGeneratorNeurons: this.numGeneratorNeurons,
+        numDiscriminatorNeurons: this.numDiscriminatorNeurons,
+        dLearningRate: this.dLearningRate,
+        gLearningRate: this.gLearningRate,
+        dOptimizerType: this.dOptimizerType,
+        gOptimizerType: this.gOptimizerType,
+        lossType: this.lossType,
+        kDSteps: this.kDSteps,
+        kGSteps: this.kGSteps,
+      }
+    };
+    const weightDataAndSpecs = await tf.io.encodeWeights(tensors);
+    const modelArtifacts: tf.io.ModelArtifacts = {
+      modelTopology: modelInfo,
+      weightSpecs: weightDataAndSpecs.specs,
+      weightData: weightDataAndSpecs.data,
+    };
+
+    const downloadTrigger = 
+      tf.io.getSaveHandlers('downloads://ganlab_trained_model')[0];
+    await downloadTrigger.save(modelArtifacts);
+  }
+
+  private async loadPretrainedWeightFile(filename: string): 
+      Promise<tf.io.ModelArtifacts> {
+    const handler = 
+      tf.io.browserHTTPRequest(`../pretrained_models/${filename}.json`);
+    const loadedModel: tf.io.ModelArtifacts = await handler.load();
+
+    this.iterationCount = loadedModel.modelTopology['iter_count'];
+    
+    const loadedConfig: {} = loadedModel.modelTopology['config'];
+    for (let configProperty in loadedConfig) {
+      this[configProperty] = loadedConfig[configProperty];
+    }
+
+    document.getElementById('num-g-layers')!.innerText =
+      this.numGeneratorLayers.toString();
+    document.getElementById('num-d-layers')!.innerText =
+      this.numDiscriminatorLayers.toString();
+    document.getElementById('num-g-neurons')!.innerText =
+      this.numGeneratorNeurons.toString();
+    document.getElementById('num-d-neurons')!.innerText =
+      this.numDiscriminatorNeurons.toString();
+    document.getElementById('k-d-steps')!.innerText = this.kDSteps.toString();
+    document.getElementById('k-g-steps')!.innerText = this.kGSteps.toString();
+
+    return loadedModel as Promise<tf.io.ModelArtifacts>;
   }
 
   private recreateCharts() {
