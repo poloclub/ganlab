@@ -58,13 +58,14 @@ class GANLab extends GANLabPolymer {
   private uniformNoiseProvider: ganlab_input_providers.InputProvider;
   private uniformInputProvider: ganlab_input_providers.InputProvider;
 
+  private usePretrained: boolean;
+
   private model: ganlab_models.GANLabModel;
   private noiseSize: number;
   private numGeneratorLayers: number;
   private numDiscriminatorLayers: number;
   private numGeneratorNeurons: number;
   private numDiscriminatorNeurons: number;
-
   private kDSteps: number;
   private kGSteps: number;
 
@@ -250,40 +251,17 @@ class GANLab extends GANLabPolymer {
           'G', this.gOptimizerType, this.gLearningRate);
       });
 
-    this.shapeNames = [
-      'Line', 'Gaussian', 'Two Gaussians', 'Ring', 'Ring (pre-trained)', 
-      'Three Regions', 'Drawing'];
-    this.selectedShapeName = 'Two Gaussians';
-    this.querySelector('#shape-dropdown')!.addEventListener(
+    this.shapeNames = ['line', 'gaussians', 'ring', 'disjoint', 'drawing'];
+    this.selectedShapeName = 'gaussians';
+
+    const distributionElementList = 
+      document.querySelectorAll('.distribution-item');
+
+    for (let i = 0; i < distributionElementList.length; ++i) { 
       // tslint:disable-next-line:no-any event has no type
-      'iron-activate', (event: any) => {
-        this.selectedShapeName = event.detail.selected;
-
-        if (this.selectedShapeName === 'Drawing') {
-          this.pause();
-          this.drawing.prepareDrawing();
-        } else if (this.selectedShapeName === 'Ring (pre-trained)') {
-          this.selectedShapeName = 'Ring';
-
-          const filename = 'pretrained_ring';
-          this.loadPretrainedWeightFile(filename).then((loadedModel) => {
-            const loadedIterCount = this.iterationCount;
-
-            this.createExperiment();
-            this.model.loadPretrainedWeights(loadedModel);
-
-            // Run one iteration for visualization.
-            this.isPlaying = true;
-            this.iterateTraining(false);
-            this.isPlaying = false;
-
-            this.iterationCount = loadedIterCount;
-            this.iterCountElement.innerText = this.zeroPad(this.iterationCount);
-          });
-        } else {
-          this.createExperiment();
-        }
-      });
+      distributionElementList[i].addEventListener('click', (event: any) =>
+        this.changeDataset(event.target), false);
+    }  
 
     this.noiseTypes =
       ['1D Uniform', '1D Gaussian', '2D Uniform', '2D Gaussian'];
@@ -346,6 +324,15 @@ class GANLab extends GANLabPolymer {
           (event.target as any).checked ? 'visible' : 'hidden';
       });
 
+    // Pre-trained checkbox.
+    this.usePretrained = false;
+    this.querySelector('#toggle-pretrained')!.addEventListener(
+        'change', (event: Event) => {
+          // tslint:disable-next-line:no-any
+          this.usePretrained = (event.target as any).checked;
+          this.loadDataset();
+        });
+      
     // Timeline controls.
     document.getElementById('play-pause-button').addEventListener(
       'click', () => this.onClickPlayPauseButton());
@@ -514,11 +501,53 @@ class GANLab extends GANLabPolymer {
     this.model.updateOptimizer('G', this.gOptimizerType, this.gLearningRate);
   }
 
+  private changeDataset(element: HTMLElement) {
+    this.selectedShapeName = element.getAttribute('data-distribution-name');
+
+    const distributionElementList = 
+      document.querySelectorAll('.distribution-item');
+    for (let i = 0; i < distributionElementList.length; ++i) {
+      if (distributionElementList[i].classList.contains('selected')) {
+        distributionElementList[i].classList.remove('selected');
+      }
+    }
+    if (!element.classList.contains('selected')) {
+      element.classList.add('selected');
+    }
+
+    this.loadDataset();
+  }
+    
+  private loadDataset() {
+    if (this.selectedShapeName === 'drawing') {
+      this.pause();
+      this.drawing.prepareDrawing();
+    } else if (this.usePretrained === true) {
+      const filename = `pretrained_${this.selectedShapeName}`;
+      this.loadPretrainedWeightFile(filename).then((loadedModel) => {
+        const loadedIterCount = this.iterationCount;
+
+        this.createExperiment();
+        this.model.loadPretrainedWeights(loadedModel);
+
+        // Run one iteration for visualization.
+        this.isPlaying = true;
+        this.iterateTraining(false);
+        this.isPlaying = false;
+
+        this.iterationCount = loadedIterCount;
+        this.iterCountElement.innerText = this.zeroPad(this.iterationCount);
+      });
+    } else {
+      this.createExperiment();
+    }
+  }
+  
   private sampleFromTrueDistribution(
     selectedShapeName: string, drawingPositions: Array<[number, number]>) {
     const rand = Math.random();
     switch (selectedShapeName) {
-      case 'Drawing': {
+      case 'drawing': {
         const index = Math.floor(drawingPositions.length * rand);
         return [
           drawingPositions[index][0] +
@@ -527,19 +556,13 @@ class GANLab extends GANLabPolymer {
           0.02 * ganlab_input_providers.randNormal()
         ];
       }
-      case 'Line': {
+      case 'line': {
         return [
           0.8 - 0.75 * rand + 0.01 * ganlab_input_providers.randNormal(),
           0.6 + 0.3 * rand + 0.01 * ganlab_input_providers.randNormal()
         ];
       }
-      case 'Gaussian': {
-        return [
-          0.55 + 0.125 * ganlab_input_providers.randNormal(),
-          0.7 + 0.025 * ganlab_input_providers.randNormal()
-        ];
-      }
-      case 'Two Gaussians': {
+      case 'gaussians': {
         if (rand < 0.5) {
           return [
             0.3 + 0.1 * ganlab_input_providers.randNormal(),
@@ -552,8 +575,7 @@ class GANLab extends GANLabPolymer {
           ];
         }
       }
-      case 'Ring':
-      case 'Ring (pre-trained)': {
+      case 'ring': {
         return [
           0.5 + 0.3 * Math.cos(rand * Math.PI * 2) +
           0.025 * ganlab_input_providers.randNormal(),
@@ -561,7 +583,7 @@ class GANLab extends GANLabPolymer {
           0.025 * ganlab_input_providers.randNormal(),
         ];
       }
-      case 'Three Regions': {
+      case 'disjoint': {
         const stdev = 0.025;
         if (rand < 0.333) {
           return [

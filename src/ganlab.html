@@ -15,21 +15,86 @@
       width: 100%;
     }
 
+    #top-bar {
+      background-color: #183D4E;
+      padding: 8px 30px 7px;
+    }
+
+    #tool-description {
+      display: inline-block;
+      color: #f7f7f7;
+      font-size: 16px;
+    }
+
+    #source-link {
+      display: inline-block;
+      float: right;
+    }
+    
     #top-panel {
       background-color: #eee;
       border-bottom: 2px solid #ddd;
       font-size: 30px;
-      padding: 8px 30px 7px;
+      padding: 10px 30px 9px;
+    }
+
+    .top-column-title {
+      color: #555;
+      font-size: 12px;
     }
 
     #page-title {
       color: #444;
       display: inline-block;
-      font-size: 28px;
+      font-size: 36px;
       margin-right: 25px;
+      vertical-align: middle;
     }
 
-    .timeline-controls {
+    #distribution-selection {
+      display: inline-block;
+      margin-right: 35px;
+      vertical-align: middle;
+    }
+    
+    #distribution-image-list {
+      height: 30px;
+    }
+    
+    .distribution-image {
+      display: inline-block;
+      height: 30px;
+      width: 30px;
+    }
+
+    .distribution-image img,
+    .distribution-image i {
+      height: 30px;
+      width: 30px;
+    }
+
+    .distribution-image i {
+      color: rgb(233, 186, 33);
+    }
+
+    .distribution-item {
+      border: 2px solid #ddd;
+      opacity: 0.3;
+    }
+
+    .distribution-item.selected {
+      border-color: #888;
+      opacity: 1.0;
+    }
+
+    #distribution-selection label {
+      color: #444;
+      font-size: 11px;
+      margin-left: -5px;
+      vertical-align: bottom;
+    }
+    
+    #timeline-controls {
       display: inline-block;
     }
 
@@ -90,19 +155,16 @@
     }
 
     #iteration {
-      color: #737373;
       display: inline-block;
       font-size: 14px;
       margin-left: 15px;
-      margin-top: 16px;
-      vertical-align: top;
     }
 
     #iteration-count {
-      bottom: -5px;
+      color: #666;
       font-size: 28px;
       margin-left: 3px;
-      position: relative;
+      margin-top: 5px;
     }
 
     #save {
@@ -549,9 +611,42 @@
   </style>
   <template>
     <div id="gan-lab-container">
+      <div id="top-bar">
+        <div id="tool-description">Play with Generated Adversarial Networks (GANs) in your browser!</div>
+        <div id="source-link">
+          <a href="https://github.com/poloclub/ganlab" title="Source on GitHub"><img src="github-mark.png" /></a>
+        </div>
+      </div>
+      
       <div id="top-panel">
-        <div id="page-title"><strong>GAN</strong> Lab</div>
-        <div class="timeline-controls">
+        <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
+
+        <div id="distribution-selection" class="top-panel-item">
+          <div class="top-column-title">Which distribution to use?</div>
+          <div id="distribution-image-list">
+            <div class="distribution-image">
+              <img class="distribution-item" data-distribution-name="line" src="distribution-line.png" />
+            </div>
+            <div class="distribution-image">
+              <img class="distribution-item selected" data-distribution-name="gaussians" src="distribution-gaussians.png" />
+            </div>
+            <div class="distribution-image">
+              <img class="distribution-item" data-distribution-name="ring" src="distribution-ring.png" />
+            </div>
+            <div class="distribution-image">
+              <img class="distribution-item" data-distribution-name="disjoint" src="distribution-disjoint.png" />
+            </div>
+            <div class="distribution-image">
+              <i class="distribution-item material-icons" data-distribution-name="drawing">brush</i>
+            </div>
+          </div>
+          <div>
+            <input type="checkbox" id="toggle-pretrained" title="use pre-trained model" />
+            <label for="toggle-pretrained">Use pre-trained model</label>
+          </div>
+        </div>
+
+        <div id="timeline-controls" class="top-panel-item">
           <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton"
           id="reset-button" title="Reset the network">
             <i class="material-icons">replay</i>
@@ -582,12 +677,12 @@
           </div>
         </div>
 
-        <div id="iteration">
-          Epoch:
-          <span id="iteration-count">0</span>
+        <div id="iteration" class="top-panel-item">
+          <div class="top-column-title">Epoch:</div>
+          <div id="iteration-count">0</div>
         </div>
 
-        <div id="save">
+        <div id="save" class="top-panel-item">
           <button class="mdl-button mdl-js-button mdl-button--icon"
             id="save-model" title="Save model" style="margin-left: 5px">
             <i class="material-icons">save_alt</i>
@@ -911,19 +1006,9 @@
               </div>
 
               <div id="component-true-distribution" class="model-component"
-                style="top: 70px; left: 275px; width: 105px">
-                <div style="width: 105px">
-                  <div class="component-dropdown-label">Distribution</div>
-                  <paper-dropdown-menu no-animations no-label-float>
-                    <paper-listbox attr-for-selected="value" id="shape-dropdown" class="dropdown-content" selected="{{selectedShapeName}}">
-                      <template is="dom-repeat" items="[[shapeNames]]">
-                        <paper-item value="[[item]]" label="[[item]]">
-                          [[item]]
-                        </paper-item>
-                      </template>
-                    </paper-listbox>
-                  </paper-dropdown-menu>
-                  <br />
+                style="top: 100px; left: 315px; width: 65px;">
+                <div>
+                  <div class="component-dropdown-label">Contour</div>
                   <div id="t-contour-toggle" class="checkbox-toggle"
                     title="show/hide true distribution's contour"
                     style="right: 1px; top: 3px">
