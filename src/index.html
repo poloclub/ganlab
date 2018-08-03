@@ -10,7 +10,7 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
   <script src="../support.js"></script>
   
-  <title>GAN Lab</title>
+  <title>GAN Lab: Play with Generative Adversarial Networks in Your Browser!</title>
   <style>
     html {
       width: 100%;
@@ -25,30 +25,41 @@
     }
 
     #description {
-      margin-bottom: 40px;
+      margin-bottom: 60px;
       margin-left: auto;
       margin-right: auto;
-      max-width: 700px;
+      max-width: 660px;
     }
 
     #description h3 {
-      color: #333;
-      font-size: 30px;
+      color: #444;
+      font-size: 28px;
       margin-bottom: 12px;
-      margin-top: 36px;
+      margin-top: 44px;
     }
 
-    #description ul {
-      margin-top: -8px;
+    #description p {
+      color: #555;
+      font-size: 16px;
+      line-height: 1.6;
     }
       
-    .video-part-link {
-      color: rgb(68,138,255);
-      cursor: pointer;
-      font-weight: 500;
+    #description ul {
+      margin-top: -10px;
     }
 
-    .video-part-link:hover {
+    #description li {
+      font-size: 15px;
+    }
+
+    #description a, .video-part-link {
+      color: #0D658C;
+      cursor: pointer;
+      font-weight: normal;
+      text-decoration: none;
+    }
+      
+    #description a:hover, .video-part-link:hover {
       text-decoration: underline;
     }
 
@@ -71,8 +82,10 @@
       deep learning models, known for their remarkable ability to generate 
       synthetic images that look like natural images.
       A GAN internally combines two neural networks, 
-      called <span style="color: rgb(163, 62, 189);">generator</span> 
-      and <span style="color: rgb(68, 124, 228);">discriminator</span>, 
+      called <span style="color: rgb(163, 62, 189);">
+        <strong>generator</strong></span> 
+      and <span style="color: rgb(68, 124, 228);">
+        <strong>discriminator</strong></span>, 
       to play a game where 
       the <span style="color: rgb(163, 62, 189);">generator</span> creates 
       <span style="color: rgb(163, 62, 189);">"fake"</span> data and 
@@ -97,7 +110,7 @@
       The iterative, dynamic interplay between the generator and discriminator 
       is challenging for novices to recognize, 
       and sometimes even for experts to fully understand.
-      In response, we developed <strong>GAN Lab</strong>, 
+      We developed <strong>GAN Lab</strong>, 
       a novel interactive visualization tool
       for learning and experimenting with GANs. 
       Similar to 
@@ -118,33 +131,32 @@
     </p>
     
     <p>
-      Check out this demo video for more detailed use cases!
-      You can simply play the video or click one of the following sections 
-      if you want to jump into.
+      Check out the following video for a quick look at GAN Lab's features.
       <ul>
-        <li class="video-part-link" data-start="0" data-end="37">
-          Introduction of GAN Lab (0:00-0:38)
+        <li class="video-part-link" data-start="1" data-end="37">
+          Introduction of GAN Lab <small>(0:00-0:38)</small>
         </li>
         <li class="video-part-link" data-start="38" data-end="64">
           Training for a simple distribution 
-          with dynamic hyperparameter changes (0:38-1:05)
+          with dynamic hyperparameter changes <small>(0:38-1:05)</small>
         </li>
         <li class="video-part-link" data-start="65" data-end="110">
           Training of a user-defined complex distribution
-          with manifold visualization (1:05-1:51)
+          with manifold visualization <small>(1:05-1:51)</small>
         </li>
         <li class="video-part-link" data-start="111" data-end="138">
-          Slow-motion mode for learning training steps (1:51-2:19)
+          Slow-motion mode for learning training steps 
+          <small>(1:51-2:19)</small>
         </li>
         <li class="video-part-link" data-start="139" data-end="190">
-          Manual step-by-step execution for understanding interplay
-          between discriminator &amp; generator (2:19-3:10)
+          Manual step-by-step execution for understanding the interplay
+          between discriminator and generator <small>(2:19-3:10)</small>
         </li>
       </ul>
 
-      <iframe id="existing-iframe-example" width="640" height="302" 
+      <iframe id="video-demo-iframe" width="640" height="302" 
         style="width: 640px;"
-        src="https://www.youtube.com/embed/eTq9T_sPTYQ?rel=0&amp;enablejsapi=1" 
+        src="https://www.youtube.com/embed/eTq9T_sPTYQ?rel=0&amp;enablejsapi=1"
         frameborder="0" allowfullscreen>
       </iframe>
     </p>
@@ -153,26 +165,31 @@
     <p>
       GAN Lab uses <a href="https://js.tensorflow.org/">TensorFlow.js</a>, 
       an in-browser GPU-accelerated deep learning library. 
-      All the model training and visualization are implemented with 
-      JavaScript, thus they fully run in your browser. 
-      You don't need to install any libraries --- 
-      you only need a web browser like Chrome.
-      This significantly broadens people's access to 
+      Everything, from model training to visualization, is implemented with 
+      JavaScript. You only need a web browser like Chrome to run GAN Lab.
+      Our implementation approach significantly broadens people's access to 
       interactive tools for deep learning.
-      The source code is available in 
+      The source code is available on 
       <a href="https://github.com/poloclub/ganlab">GitHub</a>.
     </p>
 
     <h3>Who developed GAN Lab?</h3>
     <p>
-      GAN Lab is a research project conducted by researchers at 
+      GAN Lab was created by 
+      <a href="http://minsuk.com">Minsuk Kahng</a>,
+      <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>, 
+      <a href="https://www.cc.gatech.edu/~dchau/">Polo Chau</a>, 
+      <a href="http://fernandaviegas.com/">Fernanda Viégas</a>, and 
+      <a href="http://www.bewitched.com/">Martin Wattenberg</a>,
+      which was the result of a research collaboration between 
       Georgia Tech and Google Brain.
-      The project was started while 
-      <a href="http://minsuk.com">Minsuk Kahng</a> was an intern at 
+      We also thank Shan Carter and Daniel Smilkov, 
       <a href="https://research.google.com/bigpicture/">
         Google Big Picture team</a> and 
       <a href="https://ai.google/research/teams/brain/pair">
-        Google PAIR</a>. 
+        Google PAIR</a>, and 
+      <a href="http://vis.gatech.edu/">Georgia Tech Visualization Lab</a> 
+      for their feedback.
     </p>
     
     <p>
@@ -203,7 +220,7 @@
   
     let player;
     function onYouTubeIframeAPIReady() {
-      player = new YT.Player('existing-iframe-example', {
+      player = new YT.Player('video-demo-iframe', {
         events: {
           'onReady': onPlayerReady
         }
