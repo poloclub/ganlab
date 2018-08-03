@@ -17,7 +17,7 @@
 
     #top-bar {
       background-color: #183D4E;
-      padding: 8px 30px 7px;
+      padding: 10px 30px 9px;
     }
 
     #tool-description {
@@ -29,6 +29,7 @@
     #source-link {
       display: inline-block;
       float: right;
+      margin-top: -5px;
     }
     
     #top-panel {
@@ -47,7 +48,7 @@
       color: #444;
       display: inline-block;
       font-size: 36px;
-      margin-right: 25px;
+      margin-right: 35px;
       vertical-align: middle;
     }
 
@@ -158,16 +159,19 @@
       display: inline-block;
       font-size: 14px;
       margin-left: 15px;
+      vertical-align: middle;
     }
 
     #iteration-count {
       color: #666;
       font-size: 28px;
-      margin-left: 3px;
+      margin-bottom: 14px;
+      margin-left: 2px;
       margin-top: 5px;
     }
 
     #save {
+      display: none;
       float: right;
       margin-top: 16px;
     }
@@ -641,7 +645,7 @@
             </div>
           </div>
           <div>
-            <input type="checkbox" id="toggle-pretrained" title="use pre-trained model" />
+            <input type="checkbox" id="toggle-pretrained" title="use pre-trained model" checked />
             <label for="toggle-pretrained">Use pre-trained model</label>
           </div>
         </div>
@@ -1006,12 +1010,11 @@
               </div>
 
               <div id="component-true-distribution" class="model-component"
-                style="top: 100px; left: 315px; width: 65px;">
+                style="top: 125px; left: 315px; width: 65px;">
                 <div>
-                  <div class="component-dropdown-label">Contour</div>
                   <div id="t-contour-toggle" class="checkbox-toggle"
                     title="show/hide true distribution's contour"
-                    style="right: 1px; top: 3px">
+                    style="right: 1px; top: 6px">
                     <input type="checkbox" id="show-t-contour" />
                   </div>
                 </div>

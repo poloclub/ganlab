@@ -19,7 +19,7 @@ const ATLAS_SIZE = 12000;
 
 const NUM_GRID_CELLS = 30;
 const NUM_MANIFOLD_CELLS = 20;
-const GRAD_ARROW_UNIT_LEN = 0.25;
+const GRAD_ARROW_UNIT_LEN = 0.15;
 const NUM_TRUE_SAMPLES_VISUALIZED = 450;
 
 const VIS_INTERVAL = 50;
@@ -325,13 +325,13 @@ class GANLab extends GANLabPolymer {
       });
 
     // Pre-trained checkbox.
-    this.usePretrained = false;
+    this.usePretrained = true;
     this.querySelector('#toggle-pretrained')!.addEventListener(
-        'change', (event: Event) => {
-          // tslint:disable-next-line:no-any
-          this.usePretrained = (event.target as any).checked;
-          this.loadDataset();
-        });
+      'change', (event: Event) => {
+        // tslint:disable-next-line:no-any
+        this.usePretrained = (event.target as any).checked;
+        this.loadModelAndCreateExperiment();
+      });
       
     // Timeline controls.
     document.getElementById('play-pause-button').addEventListener(
@@ -400,7 +400,7 @@ class GANLab extends GANLabPolymer {
       'click', () => this.onClickFinishDrawingButton());
 
     // Create a new experiment.
-    this.createExperiment();
+    this.loadModelAndCreateExperiment();
   }
 
   private createExperiment() {
@@ -515,10 +515,10 @@ class GANLab extends GANLabPolymer {
       element.classList.add('selected');
     }
 
-    this.loadDataset();
+    this.loadModelAndCreateExperiment();
   }
     
-  private loadDataset() {
+  private loadModelAndCreateExperiment() {
     if (this.selectedShapeName === 'drawing') {
       this.pause();
       this.drawing.prepareDrawing();
@@ -737,7 +737,7 @@ class GANLab extends GANLabPolymer {
     if (this.isPlaying) {
       this.pause();
     }
-    this.createExperiment();
+    this.loadModelAndCreateExperiment();
   }
 
   private onClickStepModeButton() {
