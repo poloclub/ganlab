@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
   <script src="../support.js"></script>
-
+  
   <title>GAN Lab</title>
   <style>
     html {
@@ -23,11 +23,205 @@
       width: 100%;
       height: 100%;
     }
+
+    #description {
+      margin-bottom: 40px;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 700px;
+    }
+
+    #description h3 {
+      color: #333;
+      font-size: 30px;
+      margin-bottom: 12px;
+      margin-top: 36px;
+    }
+
+    #description ul {
+      margin-top: -8px;
+    }
+      
+    .video-part-link {
+      color: rgb(68,138,255);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .video-part-link:hover {
+      text-decoration: underline;
+    }
+
+    .citation {
+      font-size: 13px;
+      line-height: 20px;
+      margin-top: -10px;
+      padding: 0px 10px;
+    }
   </style>
 </head>
 
 <body>
   <gan-lab></gan-lab>
+
+  <div id="description">
+    <h3>What is GAN?</h3>
+    <p>
+      Generative Adversarial Networks (GANs) are a class of  
+      deep learning models, known for their remarkable ability to generate 
+      synthetic images that look like natural images.
+      A GAN internally combines two neural networks, 
+      called <span style="color: rgb(163, 62, 189);">generator</span> 
+      and <span style="color: rgb(68, 124, 228);">discriminator</span>, 
+      to play a game where 
+      the <span style="color: rgb(163, 62, 189);">generator</span> creates 
+      <span style="color: rgb(163, 62, 189);">"fake"</span> data and 
+      the <span style="color: rgb(68, 124, 228);">discriminator</span> guesses
+      whether that data is 
+      <span style="color: rgb(0, 136, 55);">real</span> or 
+      <span style="color: rgb(163, 62, 189);">fake</span>. 
+      A perfect GAN is one that generates 
+      <span style="color: rgb(163, 62, 189);">fake</span> data that is 
+      virtually indistinguishable from 
+      <span style="color: rgb(0, 136, 55);">real</span> data.
+      For a more detailed introduction to GANs, 
+      check out <a href="https://arxiv.org/pdf/1406.2661.pdf">the original 
+      paper by Goodfellow et al.</a>, or 
+      <a href="https://www.google.com/search?q=Generative+Adversarial+Networks">
+      google</a> it --- you'll find many introductory articles.
+    </p>
+
+    <h3>What is this tool for?</h3>
+    <p>
+      GANs are very difficult to train and for people to understand.
+      The iterative, dynamic interplay between the generator and discriminator 
+      is challenging for novices to recognize, 
+      and sometimes even for experts to fully understand.
+      In response, we developed <strong>GAN Lab</strong>, 
+      a novel interactive visualization tool
+      for learning and experimenting with GANs. 
+      Similar to 
+      <a href="http://playground.tensorflow.org/">TensorFlow Playground</a>,
+      here you can learn GANs by interactively training GAN models 
+      for 2D data distributions and visualizing their inner-workings.
+    </p>
+
+    <h3>How can I play with GAN Lab?</h3>
+    <p>
+      You can start by choosing one of the 2D data distributions 
+      on the top menu and click the play button. 
+      You'll see animated visualization as the training progresses.
+      Ideally, the distribution of the 
+      <span style="color: rgb(163, 62, 189);">purple</span> dots (fake data) 
+      will become indistinguishable from that of the 
+      <span style="color: rgb(0, 136, 55);">green</span> dots (real data).
+    </p>
+    
+    <p>
+      Check out this demo video for more detailed use cases!
+      You can simply play the video or click one of the following sections 
+      if you want to jump into.
+      <ul>
+        <li class="video-part-link" data-start="0" data-end="37">
+          Introduction of GAN Lab (0:00-0:38)
+        </li>
+        <li class="video-part-link" data-start="38" data-end="64">
+          Training for a simple distribution 
+          with dynamic hyperparameter changes (0:38-1:05)
+        </li>
+        <li class="video-part-link" data-start="65" data-end="110">
+          Training of a user-defined complex distribution
+          with manifold visualization (1:05-1:51)
+        </li>
+        <li class="video-part-link" data-start="111" data-end="138">
+          Slow-motion mode for learning training steps (1:51-2:19)
+        </li>
+        <li class="video-part-link" data-start="139" data-end="190">
+          Manual step-by-step execution for understanding interplay
+          between discriminator &amp; generator (2:19-3:10)
+        </li>
+      </ul>
+
+      <iframe id="existing-iframe-example" width="640" height="302" 
+        style="width: 640px;"
+        src="https://www.youtube.com/embed/eTq9T_sPTYQ?rel=0&amp;enablejsapi=1" 
+        frameborder="0" allowfullscreen>
+      </iframe>
+    </p>
+
+    <h3>Cool. How is it implemented?</h3>
+    <p>
+      GAN Lab uses <a href="https://js.tensorflow.org/">TensorFlow.js</a>, 
+      an in-browser GPU-accelerated deep learning library. 
+      All the model training and visualization are implemented with 
+      JavaScript, thus they fully run in your browser. 
+      You don't need to install any libraries --- 
+      you only need a web browser like Chrome.
+      This significantly broadens people's access to 
+      interactive tools for deep learning.
+      The source code is available in 
+      <a href="https://github.com/poloclub/ganlab">GitHub</a>.
+    </p>
+
+    <h3>Who developed GAN Lab?</h3>
+    <p>
+      GAN Lab is a research project conducted by researchers at 
+      Georgia Tech and Google Brain.
+      The project was started while 
+      <a href="http://minsuk.com">Minsuk Kahng</a> was an intern at 
+      <a href="https://research.google.com/bigpicture/">
+        Google Big Picture team</a> and 
+      <a href="https://ai.google/research/teams/brain/pair">
+        Google PAIR</a>. 
+    </p>
+    
+    <p>
+      For more information, check out 
+      <a href="http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
+        our research paper</a>:     
+    </p>
+
+    <div class="citation">
+      <a href="http://minsuk.com">Minsuk Kahng</a>,
+      <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>, 
+      <a href="https://www.cc.gatech.edu/~dchau/">Polo Chau</a>, 
+      <a href="http://fernandaviegas.com/">Fernanda Viégas</a>, and 
+      <a href="http://www.bewitched.com/">Martin Wattenberg</a>.
+      "GAN Lab: Understanding Complex Deep Generative Models using 
+      Interactive Visual Experimentation."
+      <i>IEEE Transactions on Visualization and Computer Graphics 
+      (VAST 2018)</i>.
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    const tag = document.createElement('script');
+    tag.id = 'iframe-demo';
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  
+    let player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('existing-iframe-example', {
+        events: {
+          'onReady': onPlayerReady
+        }
+      });
+    }
+    function onPlayerReady(event) {
+      player.mute()
+    }
+    
+    const videoLinks = document.querySelectorAll('.video-part-link');
+    Array.from(videoLinks).forEach((linkElement) => {
+      linkElement.addEventListener('click', () => {
+        const startSecond = linkElement.getAttribute('data-start');
+        player.seekTo(startSecond);
+        player.playVideo();
+      });
+    });
+  </script>
 </body>
 
 </html>
