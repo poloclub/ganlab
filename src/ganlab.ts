@@ -91,6 +91,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorLayers += 1;
           numGeneratorLayersElement.innerText =
             this.numGeneratorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -100,6 +101,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorLayers -= 1;
           numGeneratorLayersElement.innerText =
             this.numGeneratorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -113,6 +115,7 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorLayers += 1;
           numDiscriminatorLayersElement.innerText =
             this.numDiscriminatorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -122,6 +125,7 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorLayers -= 1;
           numDiscriminatorLayersElement.innerText =
             this.numDiscriminatorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -135,6 +139,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorNeurons += 1;
           numGeneratorNeuronsElement.innerText =
             this.numGeneratorNeurons.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -144,6 +149,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorNeurons -= 1;
           numGeneratorNeuronsElement.innerText =
             this.numGeneratorNeurons.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -157,7 +163,8 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorNeurons += 1;
           numDiscriminatorNeuronsElement.innerText =
             this.numDiscriminatorNeurons.toString();
-          this.createExperiment();
+            this.disabledPretrainedMode();
+            this.createExperiment();
         }
       });
     document.getElementById('d-neurons-remove-button').addEventListener(
@@ -166,6 +173,7 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorNeurons -= 1;
           numDiscriminatorNeuronsElement.innerText =
             this.numDiscriminatorNeurons.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -272,6 +280,7 @@ class GANLab extends GANLabPolymer {
       'iron-activate', (event: any) => {
         this.selectedNoiseType = event.detail.selected;
         this.noiseSize = +this.selectedNoiseType.substring(0, 1);
+        this.disabledPretrainedMode();
         this.createExperiment();
       });
 
@@ -522,6 +531,7 @@ class GANLab extends GANLabPolymer {
     if (this.selectedShapeName === 'drawing') {
       this.pause();
       this.drawing.prepareDrawing();
+      this.disabledPretrainedMode();
     } else if (this.usePretrained === true) {
       const filename = `pretrained_${this.selectedShapeName}`;
       this.loadPretrainedWeightFile(filename).then((loadedModel) => {
@@ -692,6 +702,13 @@ class GANLab extends GANLabPolymer {
     this.createExperiment();
   }
 
+  private disabledPretrainedMode() {
+    this.usePretrained = false;
+    const element = 
+      document.getElementById('toggle-pretrained') as HTMLInputElement;
+    element.checked = false;
+  }
+
   private play() {
     if (this.stepMode) {
       this.onClickStepModeButton();
@@ -752,12 +769,12 @@ class GANLab extends GANLabPolymer {
       this.stepMode = true;
       document.getElementById('next-step-button')
         .classList.add('mdl-button--colored');
-      document.getElementById('step-buttons').style.visibility = 'visible';
+      document.getElementById('step-buttons').style.display = 'block';
     } else {
       this.stepMode = false;
       document.getElementById('next-step-button')
         .classList.remove('mdl-button--colored');
-      document.getElementById('step-buttons').style.visibility = 'hidden';
+      document.getElementById('step-buttons').style.display = 'none';
     }
   }
 
@@ -964,7 +981,7 @@ class GANLab extends GANLabPolymer {
           .selectAll('.true-dot')
           .data(pData1)
           .style('fill', (d: number) => this.colorScale(sqrtAbs(d)));
-        if (this.iterationCount > 1) {
+        if (this.iterationCount > 1 || this.usePretrained) {
           d3.select('#svg-generated-prediction')
             .selectAll('.generated-dot')
             .data(pData2)

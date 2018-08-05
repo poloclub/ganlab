@@ -1,4 +1,5 @@
 <link rel="import" href="../node_modules/@bower_components/polymer/polymer.html">
+<link rel="import" href="../node_modules/@bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../node_modules/@bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../node_modules/@bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../node_modules/@bower_components/paper-item/paper-item.html">
@@ -16,60 +17,59 @@
     }
 
     #top-bar {
+      align-items: center;
       background-color: #183D4E;
-      padding: 10px 30px 9px;
+      display: flex;
+      padding: 5px 30px 4px;
     }
 
     #tool-description {
-      display: inline-block;
+      flex-grow: 2;
       color: #f7f7f7;
       font-size: 16px;
     }
 
-    #source-link {
-      display: inline-block;
-      float: right;
-      margin-top: -5px;
-    }
-    
     #top-panel {
+      align-items: center;
       background-color: #eee;
       border-bottom: 2px solid #ddd;
+      display: flex;
       font-size: 30px;
       padding: 10px 30px 9px;
     }
 
-    .top-column-title {
-      color: #555;
-      font-size: 12px;
+    .top-panel-item {
+      margin-left: 30px;
+      margin-right: 40px;
     }
 
     #page-title {
       color: #444;
-      display: inline-block;
       font-size: 36px;
-      margin-right: 35px;
-      vertical-align: middle;
+      margin-left: 0;
+      margin-right: 60px;
     }
 
-    #distribution-selection {
-      display: inline-block;
-      margin-right: 35px;
-      vertical-align: middle;
+    #distribution-selection .top-column-title {
+      color: #222;
+      font-size: 13px;
+      text-transform: uppercase;
     }
-    
+
     #distribution-image-list {
+      display: flex;
       height: 30px;
     }
     
     .distribution-image {
-      display: inline-block;
       height: 30px;
+      margin-right: 7px;
       width: 30px;
     }
 
     .distribution-image img,
     .distribution-image i {
+      cursor: pointer;
       height: 30px;
       width: 30px;
     }
@@ -83,20 +83,32 @@
       opacity: 0.3;
     }
 
+    .distribution-item:hover {
+      border-color: #888;
+      opacity: 0.5;
+    }
+
     .distribution-item.selected {
       border-color: #888;
       opacity: 1.0;
     }
 
-    #distribution-selection label {
-      color: #444;
+    #distribution-selection-checkbox paper-checkbox {
       font-size: 11px;
-      margin-left: -5px;
-      vertical-align: bottom;
+      --paper-checkbox-checked-color: #888;
+      --paper-checkbox-label-color: #666;
+      --paper-checkbox-label-spacing: 5px;
+      --paper-checkbox-size: 11px;
+      --paper-checkbox-unchecked-color: #888;
     }
     
     #timeline-controls {
-      display: inline-block;
+      align-items: center;
+      display: flex;
+    }
+
+    #timeline-controls button {
+      margin-right: 11px;
     }
 
     .mdl-button--fab.mdl-button--colored,
@@ -125,14 +137,10 @@
       display: inherit;
     }
 
-    #step-buttons {
-      display: inline-block;
-      vertical-align: middle;
-    }
-
     #step-buttons button {
       background-color: rgb(228, 228, 228);
       border: none;
+      border-radius: 5px;
       cursor: pointer;
       display: block;
       margin-bottom: 1px;
@@ -156,70 +164,54 @@
     }
 
     #iteration {
-      display: inline-block;
+      flex-grow: 2;
       font-size: 14px;
-      margin-left: 15px;
-      vertical-align: middle;
+      margin-left: 20px;
+    }
+
+    #iteration .top-column-title {
+      color: #222;
+      font-size: 13px;
     }
 
     #iteration-count {
       color: #666;
       font-size: 28px;
-      margin-bottom: 14px;
-      margin-left: 2px;
-      margin-top: 5px;
+      margin: 5px 0 13px;
     }
 
     #save {
       display: none;
-      float: right;
-      margin-top: 16px;
     }
 
     #main-panel {
       display: flex;
-    }
-
-    .ink-panel {
-      display: flex;
-      flex-direction: column;
       font-size: 13px;
+    }
+    
+    .panel-item {      
+      padding: 15px 25px;
     }
 
     .panel-title {
+      align-items: center;
       color: #555;
-      margin-bottom: 10px;
+      display: flex;
+      margin-bottom: 5px;
       font-size: 15px;
+      height: 32px;
       text-transform: uppercase;
     }
 
     .panel-title .mdl-button--icon {
-      height: 20px;
-      margin-left: 5px;
-      min-width: 20px;
-      width: 20px;
-    }
-
-    #charts-panel {
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-width: 0 0 0 1px;
-      padding: 25px;
-      width: 210px;
+      margin-left: 6px;
     }
 
     #model-visualization-container {
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 1px 0 0;
-      flex-grow: 2;
       min-height: 600px;
       min-width: 815px;
-      padding: 25px;
-    }
-
-    #visualization-container {
-      flex-grow: 2;
-      padding: 25px;
-      position: relative;
     }
 
     #model-vis-content-container {
@@ -612,13 +604,46 @@
     #model-visualization-container.any-highlighted .tooltip-for-g.highlighted {
       opacity: 1.0;
     }
+
+    #visualization-container {
+      min-height: 660px;
+      min-width: 400px;
+    }
+
+    #vis-content-container {
+      position: relative;
+    }
+
+    #vis-svg, 
+    #vis-descriptions, 
+    #drawing-container {
+      position: absolute;
+    }
+
+    #vis-descriptions {
+      top: 400px;
+    }
+
+    #drawing-container {
+      cursor: pointer;
+    }
+
+    #charts-panel {
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-width: 0 0 0 1px;
+      width: 210px;
+    }    
   </style>
   <template>
     <div id="gan-lab-container">
       <div id="top-bar">
-        <div id="tool-description">Play with Generated Adversarial Networks (GANs) in your browser!</div>
+        <div id="tool-description">
+          Play with Generated Adversarial Networks (GANs) in your browser!
+        </div>
         <div id="source-link">
-          <a href="https://github.com/poloclub/ganlab" title="Source on GitHub"><img src="github-mark.png" /></a>
+          <a href="https://github.com/poloclub/ganlab" title="Source on GitHub">
+            <img src="github-mark.png" />
+          </a>
         </div>
       </div>
       
@@ -626,63 +651,89 @@
         <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
 
         <div id="distribution-selection" class="top-panel-item">
-          <div class="top-column-title">Which distribution to use?</div>
+          <div class="top-column-title">Data distribution</div>
           <div id="distribution-image-list">
             <div class="distribution-image">
-              <img class="distribution-item" data-distribution-name="line" src="distribution-line.png" />
+              <img class="distribution-item" 
+                data-distribution-name="line" 
+                title="Simple line"
+                src="distribution-line.png" />
             </div>
             <div class="distribution-image">
-              <img class="distribution-item selected" data-distribution-name="gaussians" src="distribution-gaussians.png" />
+              <img class="distribution-item selected" 
+                data-distribution-name="gaussians" 
+                title="Mixture of Gaussians" 
+                src="distribution-gaussians.png" />
             </div>
             <div class="distribution-image">
-              <img class="distribution-item" data-distribution-name="ring" src="distribution-ring.png" />
+              <img class="distribution-item" 
+                data-distribution-name="ring"
+                title="Ring" 
+                src="distribution-ring.png" />
             </div>
             <div class="distribution-image">
-              <img class="distribution-item" data-distribution-name="disjoint" src="distribution-disjoint.png" />
+              <img class="distribution-item" 
+                data-distribution-name="disjoint" 
+                title="3 disjoint regions" 
+                src="distribution-disjoint.png" />
             </div>
             <div class="distribution-image">
-              <i class="distribution-item material-icons" data-distribution-name="drawing">brush</i>
+              <i class="distribution-item material-icons" 
+                data-distribution-name="drawing"
+                title="Draw one by yourself">brush</i>
             </div>
           </div>
-          <div>
-            <input type="checkbox" id="toggle-pretrained" title="use pre-trained model" checked />
-            <label for="toggle-pretrained">Use pre-trained model</label>
+          <div id="distribution-selection-checkbox">
+            <paper-checkbox id="toggle-pretrained" 
+              title="Train on top of a pre-trained model or train from scratch"
+              checked>
+              Use pre-trained model
+            </paper-checkbox>
           </div>
         </div>
 
         <div id="timeline-controls" class="top-panel-item">
-          <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton"
-          id="reset-button" title="Reset the network">
+          <button 
+            class="mdl-button mdl-js-button mdl-button--icon ui-resetButton"
+            id="reset-button" title="Reset the model">
             <i class="material-icons">replay</i>
           </button>
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored ui-playButton"
-            id="play-pause-button" title="Run/Pause">
+          <button class="mdl-button mdl-js-button mdl-button--fab 
+            mdl-button--colored ui-playButton"
+            id="play-pause-button" title="Run/Pause training">
             <i class="material-icons">play_arrow</i>
             <i class="material-icons">pause</i>
           </button>
           <button class="mdl-button mdl-js-button mdl-button--icon"
-            id="slow-step" title="Slow mode" style="margin-left: 5px">
+            id="slow-step" title="Slow-motion mode" 
+            style="margin-left: 5px">
             <i class="material-icons">slow_motion_video</i>
           </button>
-          <button class="mdl-button mdl-js-button mdl-button--icon ui-stepButton"
-            id="next-step-button" title="Train for one epoch" style="margin-left: 5px">
+          <button 
+            class="mdl-button mdl-js-button mdl-button--icon ui-stepButton"
+            id="next-step-button" title="Train for one epoch" 
+            style="margin-left: 5px">
             <i class="material-icons">skip_next</i>
           </button>
-          <div id="step-buttons" style="visibility: hidden">
-            <button id="next-step-g-button" title="Train only generator for one time">
+
+          <div id="step-buttons" style="display: none">
+            <button id="next-step-g-button" 
+              title="Train only generator for one epoch">
               Generator
             </button>
-            <button id="next-step-d-button" title="Train only discriminator for one time">
+            <button id="next-step-d-button" 
+              title="Train only discriminator for one epoch">
               Discriminator
             </button>
-            <button id="next-step-all-button" title="Train for one epoch">
+            <button id="next-step-all-button" 
+              title="Train both discriminator and generator for one epoch">
               Both
             </button>
           </div>
         </div>
 
         <div id="iteration" class="top-panel-item">
-          <div class="top-column-title">Epoch:</div>
+          <div class="top-column-title">Epoch</div>
           <div id="iteration-count">0</div>
         </div>
 
@@ -695,11 +746,12 @@
       </div>
 
       <div id="main-panel">
-        <div id="model-visualization-container" class="ink-panel">
-          <div class="panel-title" style="padding-left: 5px;">
+        <div id="model-visualization-container" class="panel-item">
+          <div class="panel-title" style="padding-left: 5px;"
+            title="Shows the architecture of a model and data flow">
             Model Overview Graph
             <button class="mdl-button mdl-js-button mdl-button--icon"
-              id="edit-model-button" title="Show/hide hyperparameter options">
+              id="edit-model-button" title="Show/hide hyperparameters">
               <i class="material-icons">mode_edit</i>
             </button>
           </div>
@@ -776,15 +828,20 @@
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="k-d-steps-add-button" title="Increase a step">
+                      id="k-d-steps-add-button" 
+                      title="Increase a step per epoch">
                       <i class="material-icons">keyboard_arrow_up</i>
-                    </button><br /><button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="k-d-steps-remove-button" title="Decrease a step per iter">
+                    </button>
+                    <br />
+                    <button class="mdl-button mdl-js-button mdl-button--icon"
+                      id="k-d-steps-remove-button" 
+                      title="Decrease a step per iter">
                       <i class="material-icons">keyboard_arrow_down</i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="k-d-steps">2</span> update(s) per epoch</label>
+                    <label>
+                      <span id="k-d-steps">2</span> update(s) per epoch</label>
                   </div>
                 </div>
               </div>
@@ -794,20 +851,26 @@
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="k-g-steps-add-button" title="Increase a step">
+                      id="k-g-steps-add-button" 
+                      title="Increase a step per epoch">
                       <i class="material-icons">keyboard_arrow_up</i>
-                    </button><br /><button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="k-g-steps-remove-button" title="Decrease a step per iter">
+                    </button>
+                    <br />
+                    <button class="mdl-button mdl-js-button mdl-button--icon"
+                      id="k-g-steps-remove-button" 
+                      title="Decrease a step per epoch">
                       <i class="material-icons">keyboard_arrow_down</i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="k-g-steps">1</span> update(s) per epoch</label>
+                    <label>
+                      <span id="k-g-steps">1</span> update(s) per epoch</label>
                   </div>
                 </div>
               </div>
 
-              <div id="component-discriminator-learning" class="model-component"
+              <div id="component-discriminator-learning" 
+                class="model-component"
                 style="top: 75px; left: 495px">
                 <div class="config-item" style="width: 120px">
                   <div class="up-down-buttons">
@@ -818,7 +881,8 @@
                       <paper-listbox attr-for-selected="value"
                         id="d-optimizer-type-dropdown" class="dropdown-content"
                         selected="{{dOptimizerType}}">
-                        <template is="dom-repeat" items="[[optimizerTypeOptions]]">
+                        <template is="dom-repeat" 
+                          items="[[optimizerTypeOptions]]">
                           <paper-item value="[[item]]" label="[[item]]">
                             [[item]]
                           </paper-item>
@@ -836,7 +900,8 @@
                       <paper-listbox attr-for-selected="value"
                         id="d-learning-rate-dropdown" class="dropdown-content"
                         selected="{{dLearningRate}}">
-                        <template is="dom-repeat" items="[[learningRateOptions]]">
+                        <template is="dom-repeat" 
+                          items="[[learningRateOptions]]">
                           <paper-item value="[[item]]" label="[[item]]">
                             [[item]]
                           </paper-item>
@@ -858,7 +923,8 @@
                       <paper-listbox attr-for-selected="value"
                         id="g-optimizer-type-dropdown" class="dropdown-content"
                         selected="{{gOptimizerType}}">
-                        <template is="dom-repeat" items="[[optimizerTypeOptions]]">
+                        <template is="dom-repeat" 
+                          items="[[optimizerTypeOptions]]">
                           <paper-item value="[[item]]" label="[[item]]">
                             [[item]]
                           </paper-item>
@@ -876,7 +942,8 @@
                       <paper-listbox attr-for-selected="value"
                         id="g-learning-rate-dropdown" class="dropdown-content"
                         selected="{{gLearningRate}}">
-                        <template is="dom-repeat" items="[[learningRateOptions]]">
+                        <template is="dom-repeat" 
+                          items="[[learningRateOptions]]">
                           <paper-item value="[[item]]" label="[[item]]">
                             [[item]]
                           </paper-item>
@@ -912,7 +979,8 @@
                 </div>
               </div>
 
-              <div id="component-options-discriminator" class="model-component-options"
+              <div id="component-options-discriminator" 
+                class="model-component-options"
                 style="top: 337px; left: 410px">
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
@@ -927,16 +995,19 @@
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="num-d-layers">1</span> hidden layer(s)</label>
+                    <label>
+                      <span id="num-d-layers">1</span> hidden layer(s)</label>
                   </div>
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="d-neurons-add-button" title="Add a neuron for each layer">
+                      id="d-neurons-add-button" 
+                      title="Add a neuron for each layer">
                       <i class="material-icons">keyboard_arrow_up</i>
                     </button>
                     <br />
                     <button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="d-neurons-remove-button" title="Remove a neuron for each layer">
+                      id="d-neurons-remove-button" 
+                      title="Remove a neuron for each layer">
                       <i class="material-icons">keyboard_arrow_down</i>
                     </button>
                   </div>
@@ -958,7 +1029,8 @@
                   </div>
                 </div>
 
-              <div id="component-options-generator" class="model-component-options"
+              <div id="component-options-generator" 
+                class="model-component-options"
                 style="top: 337px; left: 120px">
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
@@ -973,16 +1045,19 @@
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="num-g-layers">1</span> hidden layer(s)</label>
+                    <label>
+                      <span id="num-g-layers">1</span> hidden layer(s)</label>
                   </div>
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="g-neurons-add-button" title="Add a neuron for each layer">
+                      id="g-neurons-add-button" 
+                      title="Add a neuron for each layer">
                       <i class="material-icons">keyboard_arrow_up</i>
                     </button>
                     <br />
                     <button class="mdl-button mdl-js-button mdl-button--icon"
-                      id="g-neurons-remove-button" title="Remove a neuron for each layer">
+                      id="g-neurons-remove-button" 
+                      title="Remove a neuron for each layer">
                       <i class="material-icons">keyboard_arrow_down</i>
                     </button>
                   </div>
@@ -992,7 +1067,8 @@
                 </div>
               </div>
 
-              <div id="component-discriminator-gradients" class="model-component"
+              <div id="component-discriminator-gradients" 
+                class="model-component"
                 style="top: 27px; left: 470px">
                 <div class="component-label">Gradients</div>
               </div>
@@ -1036,7 +1112,7 @@
                 <div class="component-sub-label">Fake
                   <div id="g-samples-toggle" class="checkbox-toggle"
                     title="show/hide generated samples">
-                    <input type="checkbox" id="show-g-samples" checked="checked" />
+                    <input type="checkbox" id="show-g-samples" checked />
                   </div>
                 </div>
                 <svg id="svg-generated-samples"></svg>
@@ -1053,7 +1129,9 @@
                 style="top: 333px; left: 15px">
                 <div class="config-item" style="width: 80px">
                   <paper-dropdown-menu no-animations no-label-float>
-                    <paper-listbox attr-for-selected="value" id="noise-dropdown" class="dropdown-content" selected="{{selectedNoiseType}}">
+                    <paper-listbox attr-for-selected="value" 
+                      id="noise-dropdown" class="dropdown-content" 
+                      selected="{{selectedNoiseType}}">
                       <template is="dom-repeat" items="[[noiseTypes]]">
                         <paper-item value="[[item]]" label="[[item]]">
                           [[item]]
@@ -1066,7 +1144,8 @@
             </div>
 
             <div id="tooltips">
-                <div id="tooltip-d-generated-samples" class="tooltip tooltip-for-d"
+              <div id="tooltip-d-generated-samples" 
+                class="tooltip tooltip-for-d"
                 style="top: -10px; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
@@ -1086,12 +1165,14 @@
                 <div class="tooltip-number">4</div>
                 Computes discriminator gradients
               </div>
-              <div id="tooltip-update-discriminator" class="tooltip tooltip-for-d"
+              <div id="tooltip-update-discriminator" 
+                class="tooltip tooltip-for-d"
                 style="top: -10px; left: 640px">
                 <div class="tooltip-number">5</div>
                 Updates discriminator based on gradients
               </div>
-              <div id="tooltip-g-generated-samples" class="tooltip tooltip-for-g"
+              <div id="tooltip-g-generated-samples" 
+                class="tooltip tooltip-for-g"
                 style="top: 510px; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
@@ -1122,75 +1203,98 @@
 
         <div id="drawing-disable-background"></div>
 
-        <div id="visualization-container" class="ink-panel">
-          <div class="panel-title">Layered Distributions</div>
+        <div id="visualization-container" class="panel-item">
+          <div class="panel-title"
+            title="Visualizes components in the model overview graph as 
+multiple layers. The six layers can be turned on or off using 
+green toggle switches on the left.">
+            Layered Distributions
+          </div>
 
-          <svg id="vis-svg" width="400" height="400">
-            <g id="vis-area">
-              <g id="vis-discriminator-output" class="vis-panel">
-                <rect class="plot-bg" width="400" height="400" x="0" y="0"></rect>
+          <div id="vis-content-container">
+            <svg id="vis-svg" width="400" height="400">
+              <g id="vis-area">
+                <g id="vis-discriminator-output" class="vis-panel">
+                  <rect class="plot-bg" 
+                    width="400" height="400" x="0" y="0"></rect>
+                </g>
+                <g id="vis-samples" class="vis-panel">
+                  <g id="vis-true-samples-contour" class="contour" 
+                    style="visibility: hidden"></g>
+                  <g id="vis-true-samples"></g>
+                  <g id="vis-generator-gradients"></g>
+                  <g id="vis-generated-samples"></g>
+                  <g id="vis-manifold" style="visibility: hidden"></g>
+                  <rect class="plot-border" 
+                    width="400" height="400" x="0" y="0"></rect>
+                </g>
               </g>
-              <g id="vis-samples" class="vis-panel">
-                <g id="vis-true-samples-contour" class="contour" style="visibility: hidden"></g>
-                <g id="vis-true-samples"></g>
-                <g id="vis-generator-gradients"></g>
-                <g id="vis-generated-samples"></g>
-                <g id="vis-manifold" style="visibility: hidden"></g>
-                <rect class="plot-border" width="400" height="400" x="0" y="0"></rect>
+            </svg>
+            <svg id="vis-descriptions" width="400" height="220">
+              <g transform="translate(5,20)">
+                <text transform="translate(0,0)">
+                  Each dot is a 2D data sample:
+                </text>
+                <circle class="true-dot" 
+                  r="2" transform="translate(5,15)"></circle>
+                <text transform="translate(15,19)">Real samples</text>
+                <circle class="generated-dot" 
+                  r="2" transform="translate(5,34)"></circle>
+                <text transform="translate(15,38)">Fake samples</text>
               </g>
-            </g>
-          </svg>
-          <svg id="vis-descriptions" width="400" height="300">
-            <g transform="translate(0,20)">
-              <text transform="translate(0,0)">
-                Each dot is a sample:
-              </text>
-              <circle class="true-dot" r="2" transform="translate(5,15)"></circle>
-              <text transform="translate(15,19)">Real samples</text>
-              <circle class="generated-dot" r="2" transform="translate(5,35)"></circle>
-              <text transform="translate(15,39)">Fake samples</text>
-            </g>
-            <g transform="translate(0,80)">
-              <text transform="translate(0,10)">
-                Background colors of grid cells represent discriminator's predictions:
-              </text>
-              <rect class="true-dot" width="10" height="10" transform="translate(1,20)"
-                style="fill-opacity: 0.75"></rect>
-              <text transform="translate(16,29)">
-                Samples in this cell seem real.
-              </text>
-              <rect width="10" height="10" transform="translate(1,40)"
-              style="fill: #e2e2e2"></rect>
-              <text transform="translate(16,49)">
-                Difficult to determine whether samples are real or fake.
-              </text>
-              <rect class="generated-dot" width="10" height="10" transform="translate(1,60)"
-                style="fill-opacity: 0.75"></rect>
-              <text transform="translate(16,69)">
-                Samples in this cell seem fake.
-              </text>
-            </g>
-            <g transform="translate(0,180)">
-              <text transform="translate(0,0)">
-                Lines from fake samples represent gradients for generator:
-              </text>
-              <circle class="generated-dot" r="2" transform="translate(3,18)"></circle>
-              <text transform="translate(15,19)">
-                This sample needs to move upper right to decrease generator's loss.
-              </text>
-              <polygon class="gradient-generated" transform="translate(3,18)"
-                points="0,0 1,1 10,-10 -1,-1"></polygon>
-            </g>
-          </svg>
+              <g transform="translate(5,80)">
+                <text transform="translate(0,10)">
+                  Background colors of grid cells represent 
+                  discriminator's predictions:
+                </text>
+                <rect class="true-dot" width="10" height="10" 
+                  transform="translate(1,20)"
+                  style="fill-opacity: 0.75"></rect>
+                <text transform="translate(16,29)">
+                  Samples in this cell seem real.
+                </text>
+                <rect width="10" height="10" transform="translate(1,39)"
+                style="fill: #e2e2e2"></rect>
+                <text transform="translate(16,48)">
+                  Difficult to determine whether samples are real or fake.
+                </text>
+                <rect class="generated-dot" width="10" height="10" 
+                  transform="translate(1,58)"
+                  style="fill-opacity: 0.75"></rect>
+                <text transform="translate(16,67)">
+                  Samples in this cell seem fake.
+                </text>
+              </g>
+              <g transform="translate(5,180)">
+                <text transform="translate(0,0)">
+                  Lines from fake samples represent gradients for generator:
+                </text>
+                <circle class="generated-dot" 
+                  r="2" transform="translate(3,18)"></circle>
+                <text transform="translate(15,19)">
+                  This sample needs to move upper right 
+                  to decrease generator's loss.
+                </text>
+                <polygon class="gradient-generated" transform="translate(3,18)"
+                  points="0,0 1,1 10,-10 -1,-1"></polygon>
+              </g>
+            </svg>
 
-          <div id="drawing-container">
-            <canvas id="input-drawing-canvas" width="400" height="400"></canvas>
-            <div id="drawing-instruction">Draw a distribution above, then click the apply button.</div>
-            <button id="finish-drawing" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Apply</button>
+            <div id="drawing-container">
+              <canvas id="input-drawing-canvas" 
+                width="400" height="400"></canvas>
+              <div id="drawing-instruction">
+                Draw a distribution above, then click the apply button.
+              </div>
+              <button id="finish-drawing" 
+                class="mdl-button mdl-js-button mdl-button--raised">
+                Apply
+              </button>
+            </div>
           </div>
         </div>
 
-        <div id="charts-panel" class="ink-panel">
+        <div id="charts-panel" class="panel-item">
           <div class="panel-title">Metrics</div>
 
           <div id="chart-container">

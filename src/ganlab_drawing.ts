@@ -12,9 +12,9 @@ export class GANLabDrawing {
     this.context.lineJoin = 'round';
     this.context.lineWidth = 10;
     const drawingContainer =
-      document.getElementById('visualization-container') as HTMLDivElement;
-    const offsetLeft = drawingContainer.offsetLeft + 10;
-    const offsetTop = drawingContainer.offsetTop + 10;
+      document.getElementById('vis-content-container') as HTMLDivElement;
+    const offsetLeft = drawingContainer.offsetLeft + 5;
+    const offsetTop = drawingContainer.offsetTop + 15;
 
     this.canvas.addEventListener('mousedown', (event: MouseEvent) => {
       this.isDrawing = true;
