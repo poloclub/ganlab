@@ -31,9 +31,9 @@
       max-width: 660px;
     }
 
-    #description h3 {
+    #description h2 {
       color: #444;
-      font-size: 28px;
+      font-size: 32px;
       margin-bottom: 12px;
       margin-top: 44px;
     }
@@ -76,58 +76,147 @@
   <gan-lab></gan-lab>
 
   <div id="description">
-    <h3>What is GAN?</h3>
+    <h2>What is a "generative adversarial network" (GAN)?</h2>
     <p>
-      Generative Adversarial Networks (GANs) are a class of  
-      deep learning models, known for their remarkable ability to generate 
-      synthetic images that look like natural images.
-      A GAN internally combines two neural networks, 
-      called <span style="color: rgb(163, 62, 189);">
-        <strong>generator</strong></span> 
-      and <span style="color: rgb(68, 124, 228);">
-        <strong>discriminator</strong></span>, 
-      to play a game where 
-      the <span style="color: rgb(163, 62, 189);">generator</span> creates 
-      <span style="color: rgb(163, 62, 189);">"fake"</span> data and 
-      the <span style="color: rgb(68, 124, 228);">discriminator</span> guesses
-      whether that data is 
-      <span style="color: rgb(0, 136, 55);">real</span> or 
-      <span style="color: rgb(163, 62, 189);">fake</span>. 
-      A perfect GAN is one that generates 
-      <span style="color: rgb(163, 62, 189);">fake</span> data that is 
-      virtually indistinguishable from 
-      <span style="color: rgb(0, 136, 55);">real</span> data.
-      For a more detailed introduction to GANs, 
-      check out <a href="https://arxiv.org/pdf/1406.2661.pdf">the original 
-      paper by Goodfellow et al.</a>, or 
-      <a href="https://www.google.com/search?q=Generative+Adversarial+Networks">
-      google</a> it --- you'll find many introductory articles.
+      Many machine learning systems look at some kind of complicated input (say, an image) and produce a simple output (a label like, "cat"). By contrast, the goal of a generative model is something like the opposite: take a small piece of input--perhaps a few random numbers--and produce a complex output, like an image of a realistic-looking face. A <strong>generative adversarial network (GAN)</strong> is an especially effective type of generative model, <a href="https://arxiv.org/pdf/1406.2661.pdf">introduced only a few years ago</a>, which has been a subject of intense interest in the machine learning community. 
+    </p>
+    
+    <p>
+      You might wonder why we want a system that produces realistic images, or plausible simulations of any other kind of data. Besides the intrinsic intellectual challenge, this turns out to be a surprisingly handy tool, with applications ranging from art to enhancing blurry images.
+    </p>      
+
+    <h2>How does a GAN work?</h2>
+    <p>
+      The idea of a machine "creating" realistic images from scratch can seem like magic, but GANs use two key tricks to turn a vague, seemingly impossible goal into reality.
+    </p>
+    
+    <p>
+      The first idea, not new to GANs, is to use <strong>randomness</strong> as an ingredient. At a basic level, this makes sense: it wouldn't be very exciting if you built a system that produced the same face each time it ran. Just as important, though, is that thinking in terms of probabilities also helps us translate the problem of generating images into a natural mathematical framework. We obviously don't want to pick images at uniformly at random, since that would just produce noise. Instead, we want our system to learn about which images are likely to be faces, and which aren't. Mathematically, this involves modeling a probability distribution on images, that is, a function that tells us which images are likely to be faces and which aren't. This type of problem---modeling a function on a high-dimensional space---is exactly the sort of thing neural networks are made for.
+    </p>
+    
+    <p>      
+      The big insights that defines a GAN is to set up this modeling problem as a kind of contest. This is where the "adversarial" part of the name comes from. The key idea is to build not one, but two competing networks: a <span style="color: rgb(163, 62, 189);"><strong>generator</strong></span> and a <span style="color: rgb(68, 124, 228);"><strong>discriminator</strong></span>. The generator tries to create random <span style="color: rgb(163, 62, 189);">synthetic outputs</span> (for instance, images of faces), while the discriminator tries to tell these apart from <span style="color: rgb(0, 136, 55);">real outputs</span> (say, a database of celebrities). The hope is that as the two networks face off, they'll both get better and better---with the end result being a generator network that produces realistic outputs.
+    </p>
+    
+    <p>      
+      To sum up: Generative adversarial networks are neural networks that learn to choose samples from a special distribution (the "generative" part of the name), and they do this by setting up a competition (hence "adversarial").
     </p>
 
-    <h3>What is this tool for?</h3>
+    <h2>What's happening in the visualization?</h2>
     <p>
-      GANs are very difficult to train and for people to understand.
-      The iterative, dynamic interplay between the generator and discriminator 
-      is challenging for novices to recognize, 
-      and sometimes even for experts to fully understand.
-      We developed <strong>GAN Lab</strong>, 
-      a novel interactive visualization tool
-      for learning and experimenting with GANs. 
-      Similar to 
-      <a href="http://playground.tensorflow.org/">TensorFlow Playground</a>,
-      here you can learn GANs by interactively training GAN models 
-      for 2D data distributions and visualizing their inner-workings.
+      GANs are complicated beasts, and the visualization has a lot going on. Here are the basic ideas.
+    </p>
+    
+    <p>
+      First, we're not visualizing anything as complex as generating realistic images. Instead, we're showing a GAN that learns a distribution of points in just two dimensions. There's no real application of something this simple, but it's much easier to show the system's mechanics. For one thing, probability distributions in plain old 2D (x,y) space are much easier to visualize than distributions in the space of high-resolution images.  
     </p>
 
-    <h3>How can I play with GAN Lab?</h3>
+    <h4>
+      Pick a data distribution
+    </h4>
+    
     <p>
-      You can start by choosing one of the 2D data distributions 
-      on the top menu and click the play button. 
-      You'll see animated visualization as the training progresses.
-      Ideally, the distribution of the 
-      <span style="color: rgb(163, 62, 189);">purple</span> dots (fake data) 
-      will become indistinguishable from that of the 
-      <span style="color: rgb(0, 136, 55);">green</span> dots (real data).
+      At top, you can choose a probability distribution for GAN to learn, which we visualize as <span style="color: rgb(0, 136, 55);">a set of data samples</span> . Once you choose one, we show them at two places: a smaller version in the model overview graph view on the left; and a larger version in the layered distributions view on the right.
+    </p>
+    
+    <p>
+      [Figure]
+    </p>
+    
+    <p>
+      We designed the two views to help you better understand how a GAN works to generate realistic samples.
+      <br />
+      (1) The <strong>model overview graph</strong> shows the architecture of a GAN, its major components and how they are connected, and also visualizes results produced by the components;
+      <br />
+      (2) The <strong>layered distributions</strong> view overlays the visualizations of the components from the model overview graph, so you can more easily compare the component outputs when analyzing the model.
+    </p>
+    
+    <h4>
+      Let training begin
+    </h4>
+    
+    <p>
+      To start training the GAN model, click the play button on the toolbar. Besides <span style="color: rgb(0, 136, 55);">real samples</span>  from your chosen distribution, you'll also see <span style="color: rgb(163, 62, 189);">fake samples</span> that are generated by the model. Fake samples' positions continually updated as the training progresses. A perfect GAN will create fake samples whose distribution is indistinguishable from that of the real samples. When that happens, in the layered distributions view, you will see the two distributions nicely overlap.
+    </p>
+    
+    <p>
+      [Figure]
+    </p>
+    
+    <h4>
+      Visualizing generator and discriminator
+    </h4>
+    
+    <p>
+      Recall that the <span style="color: rgb(163, 62, 189);">generator</span> and <span style="color: rgb(68, 124, 228);">discriminator</span> within a GAN is having a little contest, competing against each other, iteratively updating the <span style="color: rgb(163, 62, 189);">fake samples</span> to become more similar to the <span style="color: rgb(0, 136, 55);">real ones</span>. GAN Lab visualizes the interactions between them. 
+    </p>
+    
+    <p>
+      Generator.
+      As described earlier, the <span style="color: rgb(163, 62, 189);">generator</span> is a function that transforms a random input into a synthetic output. In GAN Lab, a random input is a 2D sample with a (x, y) value (drawn from a uniform or Gaussian distribution), and the output is also a 2D sample, but mapped into a different position, which is a <span style="color: rgb(163, 62, 189);">fake sample</span>. One way to visualize this mapping is using <strong>manifold</strong> <a href="http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/">[Olah, 2014]</a>. The input space is represented as a uniform square grid. As the function maps positions in the input space into new positions, if we visualize the output, the whole grid, now consisting of irregular quadrangles, would look like a warped version of the original regular grid. The area (or density) of each (warped) cell has now changed, and we encode the density as opacity, so a higher opacity means more samples in smaller space. A very fine-grained manifold will look almost the same as the visualization of the fake samples. This visualization shows how the generator learns a mapping function to make its output look similar to the distribution of the <span style="color: rgb(0, 136, 55);">real samples</span>.
+    </p>
+    
+    <p>
+      [Figure]
+    </p>
+    
+    <p>
+      Discriminator.
+      As the generator creates <span style="color: rgb(163, 62, 189);">fake samples</span>, the <span style="color: rgb(68, 124, 228);">discriminator</span>, a binary classifier, tries to tell them apart from the <span style="color: rgb(0, 136, 55);">real samples</span>. GAN Lab visualizes its decision boundary as a 2D heatmap (similar to TensorFlow Playground). The background colors of a grid cell encode the confidence values of the classifier's results. Darker green means that samples in that region are more likely to be real; darker purple, more likely to be fake. As a GAN approaches the optimum, the whole heatmap will become more gray overall, signalling that the discriminator can no longer easily distinguish fake examples from the real ones.
+    </p>
+    
+    <p>
+      [Figure]
+    </p>
+    
+    <h4>
+      Understanding interaction between generator and discriminator
+    </h4>
+    
+    <p>
+      In a GAN, its two networks influence each other as they iteratively update themselves. A great use for GAN Lab is to use its visualization to learn how the <span style="color: rgb(163, 62, 189);">generator</span> incrementally updates to improve itself to generate fake samples that are increasingly more realistic. The generator does it by trying to fool the <span style="color: rgb(68, 124, 228);">discriminator</span>. The generator's loss value decreases when the discriminator classifies fake samples as real (bad for discriminator, but good for generator). GAN Lab visualizes gradients (as pink lines) for the fake samples such that the generator would achieve its success.
+    </p>
+    
+    <p>
+      [Figure]
+    </p>
+    
+    <p>
+      This way, the <span style="color: rgb(163, 62, 189);">generator</span> gradually improves to produce samples that are even more realistic. Once the fake samples are updated, the <span style="color: rgb(68, 124, 228);">discriminator</span> will update accordingly to finetune its decision boundary, and awaits the next batch of fake samples that try to fool itself. This iterative update process continues until the discriminator cannot tell <span style="color: rgb(0, 136, 55);">real</span> and <span style="color: rgb(163, 62, 189);">fake</span> samples apart.
+    </p>
+    
+    <h4>
+      Interactive features
+    </h4>
+    
+    <p>
+      GAN Lab has many cool features that support interactive experimentation.
+      <dl>
+        <dt>
+          Interactive hyperparameter adjustment
+        </dt>
+        <dd>
+          Click [icon] to reveal individual hyperparameters, and edit them on the fly during training.
+        </dd>
+        <dt>
+          User-defined data distribution
+        </dt>
+        <dd>
+          Don't like our selection of distributions? Click [icon] to draw your own.
+        </dd>
+        <dt>
+          Slow-motion mode
+        </dt>
+        <dd>
+          Lost track of the animation? Slow it down by clicking [icon] to enter slow-mo.
+        </dd>
+        <dt>
+          Manual step-by-step execution
+        </dt>
+        <dd>
+          Want more control? You can manually train individual iteration step by step by clicking [icon]
+        </dd>
+      </dl>
     </p>
     
     <p>
@@ -161,7 +250,7 @@
       </iframe>
     </p>
 
-    <h3>Cool. How is it implemented?</h3>
+    <h2>Cool. How is it implemented?</h2>
     <p>
       GAN Lab uses <a href="https://js.tensorflow.org/">TensorFlow.js</a>, 
       an in-browser GPU-accelerated deep learning library. 
@@ -173,7 +262,7 @@
       <a href="https://github.com/poloclub/ganlab">GitHub</a>.
     </p>
 
-    <h3>Who developed GAN Lab?</h3>
+    <h2>Who developed GAN Lab?</h2>
     <p>
       GAN Lab was created by 
       <a href="http://minsuk.com">Minsuk Kahng</a>,
