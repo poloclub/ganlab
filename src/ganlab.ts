@@ -524,6 +524,7 @@ class GANLab extends GANLabPolymer {
       element.classList.add('selected');
     }
 
+    this.disabledPretrainedMode();
     this.loadModelAndCreateExperiment();
   }
     
@@ -549,7 +550,10 @@ class GANLab extends GANLabPolymer {
         this.iterCountElement.innerText = this.zeroPad(this.iterationCount);
       });
     } else {
-      this.createExperiment();
+      const filename = `pretrained_${this.selectedShapeName}`;
+      this.loadPretrainedWeightFile(filename).then((loadedModel) => {
+        this.createExperiment();
+      });
     }
   }
   
