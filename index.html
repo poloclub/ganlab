@@ -832,7 +832,7 @@ default:
 return value != null ? value : undefined;
 }
 }
-});Polymer.version = "1.11.2";Polymer.Base._addFeature({
+});Polymer.version = "1.11.0";Polymer.Base._addFeature({
 _registerFeatures: function () {
 this._prepIs();
 this._prepBehaviors();
@@ -3656,10 +3656,7 @@ window.removeEventListener('test', null, opts);
 } catch (e) {
 }
 }());
-function PASSIVE_TOUCH(eventName) {
-if (isMouseEvent(eventName) || eventName === 'touchend') {
-return;
-}
+function PASSIVE_TOUCH() {
 if (HAS_NATIVE_TA && SUPPORTS_PASSIVE && Polymer.Settings.passiveTouchGestures) {
 return { passive: true };
 }
@@ -3892,7 +3889,8 @@ if (!gd) {
 gobj[dep] = gd = { _count: 0 };
 }
 if (gd._count === 0) {
-node.addEventListener(dep, this.handleNative, PASSIVE_TOUCH(dep));
+var options = !isMouseEvent(dep) && PASSIVE_TOUCH();
+node.addEventListener(dep, this.handleNative, options);
 }
 gd[name] = (gd[name] || 0) + 1;
 gd._count = (gd._count || 0) + 1;
@@ -3916,7 +3914,8 @@ if (gd && gd[name]) {
 gd[name] = (gd[name] || 1) - 1;
 gd._count = (gd._count || 1) - 1;
 if (gd._count === 0) {
-node.removeEventListener(dep, this.handleNative, PASSIVE_TOUCH(dep));
+var options = !isMouseEvent(dep) && PASSIVE_TOUCH();
+node.removeEventListener(dep, this.handleNative, options);
 }
 }
 }
@@ -5610,7 +5609,7 @@ MIXIN_RULE: 1000
 OPEN_BRACE: '{',
 CLOSE_BRACE: '}',
 _rx: {
-comments: /\/\*[^*]*\*+([^\/*][^*]*\*+)*\//gim,
+comments: /\/\*[^*]*\*+([^/*][^*]*\*+)*\//gim,
 port: /@import[^;]*;/gim,
 customProp: /(?:^[^;\-\s}]+)?--[^;{}]*?:[^{};]*?(?:[;\n]|$)/gim,
 mixinProp: /(?:^[^;\-\s}]+)?--[^;{}]*?:[^{};]*?{[^}]*?}(?:[;\n]|$)?/gim,
@@ -5626,8 +5625,6 @@ AT_START: '@'
 }();Polymer.StyleUtil = function () {
 var settings = Polymer.Settings;
 return {
-unscopedStyleImports: new WeakMap(),
-SHADY_UNSCOPED_ATTR: 'shady-unscoped',
 NATIVE_VARIABLES: Polymer.Settings.useNativeCSSProperties,
 MODULE_STYLES_SELECTOR: 'style, link[rel=import][type~=css], template',
 INCLUDE_ATTR: 'include',
@@ -5735,7 +5732,7 @@ this.__lastHeadApplyNode = placeHolder;
 return placeHolder;
 },
 cssFromModules: function (moduleIds, warnIfNotFound) {
-var modules = moduleIds.trim().split(/\s+/);
+var modules = moduleIds.trim().split(' ');
 var cssText = '';
 for (var i = 0; i < modules.length; i++) {
 cssText += this.cssFromModule(modules[i], warnIfNotFound);
@@ -5770,26 +5767,9 @@ cssText += this.cssFromModules(include, true);
 }
 e = e.__appliedElement || e;
 e.parentNode.removeChild(e);
-var css = this.resolveCss(e.textContent, element.ownerDocument);
-if (!settings.useNativeShadow && e.hasAttribute(this.SHADY_UNSCOPED_ATTR)) {
-e.textContent = css;
-document.head.insertBefore(e, document.head.firstChild);
-} else {
-cssText += css;
-}
+cssText += this.resolveCss(e.textContent, element.ownerDocument);
 } else if (e.import && e.import.body) {
-var importCss = this.resolveCss(e.import.body.textContent, e.import);
-if (!settings.useNativeShadow && e.hasAttribute(this.SHADY_UNSCOPED_ATTR)) {
-if (!this.unscopedStyleImports.has(e.import)) {
-this.unscopedStyleImports.set(e.import, true);
-var importStyle = document.createElement('style');
-importStyle.setAttribute(this.SHADY_UNSCOPED_ATTR, '');
-importStyle.textContent = importCss;
-document.head.insertBefore(importStyle, document.head.firstChild);
-}
-} else {
-cssText += importCss;
-}
+cssText += this.resolveCss(e.import.body.textContent, e.import);
 }
 }
 }
@@ -5985,31 +5965,8 @@ this._transformRule(rule, this._transformComplexSelector, scope, hostScope);
 _transformRule: function (rule, transformer, scope, hostScope) {
 rule.selector = rule.transformedSelector = this._transformRuleCss(rule, transformer, scope, hostScope);
 },
-_splitSelectorList: function (selector) {
-var parts = [];
-var part = '';
-for (var i = 0; i >= 0 && i < selector.length; i++) {
-if (selector[i] === '(') {
-var end = styleUtil._findMatchingParen(selector, i);
-part += selector.slice(i, end + 1);
-i = end;
-} else if (selector[i] === COMPLEX_SELECTOR_SEP) {
-parts.push(part);
-part = '';
-} else {
-part += selector[i];
-}
-}
-if (part) {
-parts.push(part);
-}
-if (parts.length === 0) {
-parts.push(selector);
-}
-return parts;
-},
 _transformRuleCss: function (rule, transformer, scope, hostScope) {
-var p$ = this._splitSelectorList(rule.selector);
+var p$ = rule.selector.split(COMPLEX_SELECTOR_SEP);
 if (!styleUtil.isKeyframesSelector(rule)) {
 for (var i = 0, l = p$.length, p; i < l && (p = p$[i]); i++) {
 p$[i] = transformer.call(this, p, scope, hostScope);
@@ -6017,36 +5974,19 @@ p$[i] = transformer.call(this, p, scope, hostScope);
 }
 return p$.join(COMPLEX_SELECTOR_SEP);
 },
-_ensureScopedDir: function (s) {
-var m = s.match(DIR_PAREN);
-if (m && m[1] === '' && m[0].length === s.length) {
-s = '*' + s;
-}
-return s;
-},
-_additionalDirSelectors: function (dir, after, prefix) {
-if (!dir || !after) {
-return '';
-}
-prefix = prefix || '';
-return COMPLEX_SELECTOR_SEP + prefix + ' ' + dir + ' ' + after;
-},
 _transformComplexSelector: function (selector, scope, hostScope) {
 var stop = false;
 var hostContext = false;
-var dir = false;
 var self = this;
 selector = selector.trim();
 selector = this._slottedToContent(selector);
 selector = selector.replace(ROOT, ':host > *');
 selector = selector.replace(CONTENT_START, HOST + ' $1');
-selector = this._ensureScopedDir(selector);
 selector = selector.replace(SIMPLE_SELECTOR_SEP, function (m, c, s) {
 if (!stop) {
 var info = self._transformCompoundSelector(s, c, scope, hostScope);
 stop = stop || info.stop;
 hostContext = hostContext || info.hostContext;
-dir = dir || info.dir;
 c = info.combinator;
 s = info.value;
 } else {
@@ -6056,28 +5996,14 @@ return c + s;
 });
 if (hostContext) {
 selector = selector.replace(HOST_CONTEXT_PAREN, function (m, pre, paren, post) {
-var replacement = pre + paren + ' ' + hostScope + post + COMPLEX_SELECTOR_SEP + ' ' + pre + hostScope + paren + post;
-if (dir) {
-replacement += self._additionalDirSelectors(paren, post, hostScope);
-}
-return replacement;
+return pre + paren + ' ' + hostScope + post + COMPLEX_SELECTOR_SEP + ' ' + pre + hostScope + paren + post;
 });
 }
 return selector;
 },
-_transformDir: function (s) {
-s = s.replace(HOST_DIR, HOST_DIR_REPLACE);
-s = s.replace(DIR_PAREN, DIR_REPLACE);
-return s;
-},
 _transformCompoundSelector: function (selector, combinator, scope, hostScope) {
 var jumpIndex = selector.search(SCOPE_JUMP);
 var hostContext = false;
-var dir = false;
-if (selector.match(DIR_PAREN)) {
-selector = this._transformDir(selector);
-dir = true;
-}
 if (selector.indexOf(HOST_CONTEXT) >= 0) {
 hostContext = true;
 } else if (selector.indexOf(HOST) >= 0) {
@@ -6093,12 +6019,12 @@ if (jumpIndex >= 0) {
 selector = selector.replace(SCOPE_JUMP, ' ');
 stop = true;
 }
+selector = selector.replace(DIR_PAREN, DIR_REPLACE);
 return {
 value: selector,
 combinator: combinator,
 stop: stop,
-hostContext: hostContext,
-dir: dir
+hostContext: hostContext
 };
 },
 _transformSimpleSelector: function (selector, scope) {
@@ -6135,7 +6061,7 @@ this._transformRule(rule, this._transformDocumentSelector);
 },
 normalizeRootSelector: function (rule) {
 rule.selector = rule.selector.replace(ROOT, 'html');
-var parts = this._splitSelectorList(rule.selector);
+var parts = rule.selector.split(COMPLEX_SELECTOR_SEP);
 parts = parts.filter(function (part) {
 return !part.match(HOST_OR_HOST_GT_STAR);
 });
@@ -6148,18 +6074,11 @@ _slottedToContent: function (cssText) {
 return cssText.replace(SLOTTED_PAREN, CONTENT + '> $1');
 },
 _dirShadowTransform: function (selector) {
-if (!selector.match(/:dir\(/)) {
-return selector;
-}
-return this._splitSelectorList(selector).map(function (s) {
-s = this._ensureScopedDir(s);
-s = this._transformDir(s);
-var m = HOST_CONTEXT_PAREN.exec(s);
-if (m) {
-s += this._additionalDirSelectors(m[2], m[3], '');
-}
+return selector.split(',').map(function (s) {
+s = s.replace(HOST_DIR, HOST_DIR_REPLACE);
+s = s.replace(DIR_PAREN, SHADOW_DIR_REPLACE);
 return s;
-}, this).join(COMPLEX_SELECTOR_SEP);
+}).join(',');
 },
 SCOPE_NAME: 'style-scope'
 };
@@ -6184,8 +6103,9 @@ var CONTENT_START = new RegExp('^(' + CONTENT + ')');
 var SELECTOR_NO_MATCH = 'should_not_match';
 var SLOTTED_PAREN = /(?:::slotted)(?:\(((?:\([^)(]*\)|[^)(]*)+?)\))/g;
 var HOST_OR_HOST_GT_STAR = /:host(?:\s*>\s*\*)?/;
-var DIR_PAREN = /(.*):dir\((ltr|rtl)\)/;
-var DIR_REPLACE = ':host-context([dir="$2"]) $1';
+var DIR_PAREN = /(.*):dir\((ltr|rtl)\)/g;
+var DIR_REPLACE = '[dir="$2"] $1, $1[dir="$2"]';
+var SHADOW_DIR_REPLACE = ':host-context([dir="$2"]) $1';
 var HOST_DIR = /:host\(:dir\((rtl|ltr)\)\)/g;
 var HOST_DIR_REPLACE = ':host-context([dir="$1"])';
 return api;
@@ -6868,18 +6788,13 @@ rule.transformedKeyframesName = rule.keyframesName + '-' + scopeId;
 rule.transformedSelector = rule.transformedSelector || rule.selector;
 rule.selector = rule.transformedSelector.replace(rule.keyframesName, rule.transformedKeyframesName);
 },
-_hasDirOrHostContext: function (parsedSelector) {
-return /:host-context|:dir/.test(parsedSelector);
-},
 _scopeSelector: function (rule, hostRx, hostSelector, viaAttr, scopeId) {
 rule.transformedSelector = rule.transformedSelector || rule.selector;
 var selector = rule.transformedSelector;
-var scope = styleTransformer._calcElementScope(scopeId, viaAttr);
-var hostScope = styleTransformer._calcElementScope(hostSelector, viaAttr);
+var scope = viaAttr ? '[' + styleTransformer.SCOPE_NAME + '~=' + scopeId + ']' : '.' + scopeId;
 var parts = selector.split(',');
-var isDirOrHostContextSelector = this._hasDirOrHostContext(rule.parsedSelector);
 for (var i = 0, l = parts.length, p; i < l && (p = parts[i]); i++) {
-parts[i] = p.match(hostRx) ? p.replace(hostSelector, scope) : isDirOrHostContextSelector ? p.replace(hostScope, scope + ' ' + hostScope) : scope + ' ' + p;
+parts[i] = p.match(hostRx) ? p.replace(hostSelector, scope) : scope + ' ' + p;
 }
 rule.selector = parts.join(',');
 },
@@ -8637,6 +8552,1113 @@ this.fire('dom-change');
 
 <!--
 @license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<style is="custom-style">
+
+  :root {
+
+    /* Material Design color palette for Google products */
+
+    --google-red-100: #f4c7c3;
+    --google-red-300: #e67c73;
+    --google-red-500: #db4437;
+    --google-red-700: #c53929;
+
+    --google-blue-100: #c6dafc;
+    --google-blue-300: #7baaf7;
+    --google-blue-500: #4285f4;
+    --google-blue-700: #3367d6;
+
+    --google-green-100: #b7e1cd;
+    --google-green-300: #57bb8a;
+    --google-green-500: #0f9d58;
+    --google-green-700: #0b8043;
+
+    --google-yellow-100: #fce8b2;
+    --google-yellow-300: #f7cb4d;
+    --google-yellow-500: #f4b400;
+    --google-yellow-700: #f09300;
+
+    --google-grey-100: #f5f5f5;
+    --google-grey-300: #e0e0e0;
+    --google-grey-500: #9e9e9e;
+    --google-grey-700: #616161;
+    
+    /* Material Design color palette from online spec document */
+
+    --paper-red-50: #ffebee;
+    --paper-red-100: #ffcdd2;
+    --paper-red-200: #ef9a9a;
+    --paper-red-300: #e57373;
+    --paper-red-400: #ef5350;
+    --paper-red-500: #f44336;
+    --paper-red-600: #e53935;
+    --paper-red-700: #d32f2f;
+    --paper-red-800: #c62828;
+    --paper-red-900: #b71c1c;
+    --paper-red-a100: #ff8a80;
+    --paper-red-a200: #ff5252;
+    --paper-red-a400: #ff1744;
+    --paper-red-a700: #d50000;
+ 
+    --paper-pink-50: #fce4ec;
+    --paper-pink-100: #f8bbd0;
+    --paper-pink-200: #f48fb1;
+    --paper-pink-300: #f06292;
+    --paper-pink-400: #ec407a;
+    --paper-pink-500: #e91e63;
+    --paper-pink-600: #d81b60;
+    --paper-pink-700: #c2185b;
+    --paper-pink-800: #ad1457;
+    --paper-pink-900: #880e4f;
+    --paper-pink-a100: #ff80ab;
+    --paper-pink-a200: #ff4081;
+    --paper-pink-a400: #f50057;
+    --paper-pink-a700: #c51162;
+ 
+    --paper-purple-50: #f3e5f5;
+    --paper-purple-100: #e1bee7;
+    --paper-purple-200: #ce93d8;
+    --paper-purple-300: #ba68c8;
+    --paper-purple-400: #ab47bc;
+    --paper-purple-500: #9c27b0;
+    --paper-purple-600: #8e24aa;
+    --paper-purple-700: #7b1fa2;
+    --paper-purple-800: #6a1b9a;
+    --paper-purple-900: #4a148c;
+    --paper-purple-a100: #ea80fc;
+    --paper-purple-a200: #e040fb;
+    --paper-purple-a400: #d500f9;
+    --paper-purple-a700: #aa00ff;
+ 
+    --paper-deep-purple-50: #ede7f6;
+    --paper-deep-purple-100: #d1c4e9;
+    --paper-deep-purple-200: #b39ddb;
+    --paper-deep-purple-300: #9575cd;
+    --paper-deep-purple-400: #7e57c2;
+    --paper-deep-purple-500: #673ab7;
+    --paper-deep-purple-600: #5e35b1;
+    --paper-deep-purple-700: #512da8;
+    --paper-deep-purple-800: #4527a0;
+    --paper-deep-purple-900: #311b92;
+    --paper-deep-purple-a100: #b388ff;
+    --paper-deep-purple-a200: #7c4dff;
+    --paper-deep-purple-a400: #651fff;
+    --paper-deep-purple-a700: #6200ea;
+ 
+    --paper-indigo-50: #e8eaf6;
+    --paper-indigo-100: #c5cae9;
+    --paper-indigo-200: #9fa8da;
+    --paper-indigo-300: #7986cb;
+    --paper-indigo-400: #5c6bc0;
+    --paper-indigo-500: #3f51b5;
+    --paper-indigo-600: #3949ab;
+    --paper-indigo-700: #303f9f;
+    --paper-indigo-800: #283593;
+    --paper-indigo-900: #1a237e;
+    --paper-indigo-a100: #8c9eff;
+    --paper-indigo-a200: #536dfe;
+    --paper-indigo-a400: #3d5afe;
+    --paper-indigo-a700: #304ffe;
+ 
+    --paper-blue-50: #e3f2fd;
+    --paper-blue-100: #bbdefb;
+    --paper-blue-200: #90caf9;
+    --paper-blue-300: #64b5f6;
+    --paper-blue-400: #42a5f5;
+    --paper-blue-500: #2196f3;
+    --paper-blue-600: #1e88e5;
+    --paper-blue-700: #1976d2;
+    --paper-blue-800: #1565c0;
+    --paper-blue-900: #0d47a1;
+    --paper-blue-a100: #82b1ff;
+    --paper-blue-a200: #448aff;
+    --paper-blue-a400: #2979ff;
+    --paper-blue-a700: #2962ff;
+ 
+    --paper-light-blue-50: #e1f5fe;
+    --paper-light-blue-100: #b3e5fc;
+    --paper-light-blue-200: #81d4fa;
+    --paper-light-blue-300: #4fc3f7;
+    --paper-light-blue-400: #29b6f6;
+    --paper-light-blue-500: #03a9f4;
+    --paper-light-blue-600: #039be5;
+    --paper-light-blue-700: #0288d1;
+    --paper-light-blue-800: #0277bd;
+    --paper-light-blue-900: #01579b;
+    --paper-light-blue-a100: #80d8ff;
+    --paper-light-blue-a200: #40c4ff;
+    --paper-light-blue-a400: #00b0ff;
+    --paper-light-blue-a700: #0091ea;
+ 
+    --paper-cyan-50: #e0f7fa;
+    --paper-cyan-100: #b2ebf2;
+    --paper-cyan-200: #80deea;
+    --paper-cyan-300: #4dd0e1;
+    --paper-cyan-400: #26c6da;
+    --paper-cyan-500: #00bcd4;
+    --paper-cyan-600: #00acc1;
+    --paper-cyan-700: #0097a7;
+    --paper-cyan-800: #00838f;
+    --paper-cyan-900: #006064;
+    --paper-cyan-a100: #84ffff;
+    --paper-cyan-a200: #18ffff;
+    --paper-cyan-a400: #00e5ff;
+    --paper-cyan-a700: #00b8d4;
+ 
+    --paper-teal-50: #e0f2f1;
+    --paper-teal-100: #b2dfdb;
+    --paper-teal-200: #80cbc4;
+    --paper-teal-300: #4db6ac;
+    --paper-teal-400: #26a69a;
+    --paper-teal-500: #009688;
+    --paper-teal-600: #00897b;
+    --paper-teal-700: #00796b;
+    --paper-teal-800: #00695c;
+    --paper-teal-900: #004d40;
+    --paper-teal-a100: #a7ffeb;
+    --paper-teal-a200: #64ffda;
+    --paper-teal-a400: #1de9b6;
+    --paper-teal-a700: #00bfa5;
+ 
+    --paper-green-50: #e8f5e9;
+    --paper-green-100: #c8e6c9;
+    --paper-green-200: #a5d6a7;
+    --paper-green-300: #81c784;
+    --paper-green-400: #66bb6a;
+    --paper-green-500: #4caf50;
+    --paper-green-600: #43a047;
+    --paper-green-700: #388e3c;
+    --paper-green-800: #2e7d32;
+    --paper-green-900: #1b5e20;
+    --paper-green-a100: #b9f6ca;
+    --paper-green-a200: #69f0ae;
+    --paper-green-a400: #00e676;
+    --paper-green-a700: #00c853;
+ 
+    --paper-light-green-50: #f1f8e9;
+    --paper-light-green-100: #dcedc8;
+    --paper-light-green-200: #c5e1a5;
+    --paper-light-green-300: #aed581;
+    --paper-light-green-400: #9ccc65;
+    --paper-light-green-500: #8bc34a;
+    --paper-light-green-600: #7cb342;
+    --paper-light-green-700: #689f38;
+    --paper-light-green-800: #558b2f;
+    --paper-light-green-900: #33691e;
+    --paper-light-green-a100: #ccff90;
+    --paper-light-green-a200: #b2ff59;
+    --paper-light-green-a400: #76ff03;
+    --paper-light-green-a700: #64dd17;
+ 
+    --paper-lime-50: #f9fbe7;
+    --paper-lime-100: #f0f4c3;
+    --paper-lime-200: #e6ee9c;
+    --paper-lime-300: #dce775;
+    --paper-lime-400: #d4e157;
+    --paper-lime-500: #cddc39;
+    --paper-lime-600: #c0ca33;
+    --paper-lime-700: #afb42b;
+    --paper-lime-800: #9e9d24;
+    --paper-lime-900: #827717;
+    --paper-lime-a100: #f4ff81;
+    --paper-lime-a200: #eeff41;
+    --paper-lime-a400: #c6ff00;
+    --paper-lime-a700: #aeea00;
+ 
+    --paper-yellow-50: #fffde7;
+    --paper-yellow-100: #fff9c4;
+    --paper-yellow-200: #fff59d;
+    --paper-yellow-300: #fff176;
+    --paper-yellow-400: #ffee58;
+    --paper-yellow-500: #ffeb3b;
+    --paper-yellow-600: #fdd835;
+    --paper-yellow-700: #fbc02d;
+    --paper-yellow-800: #f9a825;
+    --paper-yellow-900: #f57f17;
+    --paper-yellow-a100: #ffff8d;
+    --paper-yellow-a200: #ffff00;
+    --paper-yellow-a400: #ffea00;
+    --paper-yellow-a700: #ffd600;
+ 
+    --paper-amber-50: #fff8e1;
+    --paper-amber-100: #ffecb3;
+    --paper-amber-200: #ffe082;
+    --paper-amber-300: #ffd54f;
+    --paper-amber-400: #ffca28;
+    --paper-amber-500: #ffc107;
+    --paper-amber-600: #ffb300;
+    --paper-amber-700: #ffa000;
+    --paper-amber-800: #ff8f00;
+    --paper-amber-900: #ff6f00;
+    --paper-amber-a100: #ffe57f;
+    --paper-amber-a200: #ffd740;
+    --paper-amber-a400: #ffc400;
+    --paper-amber-a700: #ffab00;
+ 
+    --paper-orange-50: #fff3e0;
+    --paper-orange-100: #ffe0b2;
+    --paper-orange-200: #ffcc80;
+    --paper-orange-300: #ffb74d;
+    --paper-orange-400: #ffa726;
+    --paper-orange-500: #ff9800;
+    --paper-orange-600: #fb8c00;
+    --paper-orange-700: #f57c00;
+    --paper-orange-800: #ef6c00;
+    --paper-orange-900: #e65100;
+    --paper-orange-a100: #ffd180;
+    --paper-orange-a200: #ffab40;
+    --paper-orange-a400: #ff9100;
+    --paper-orange-a700: #ff6500;
+ 
+    --paper-deep-orange-50: #fbe9e7;
+    --paper-deep-orange-100: #ffccbc;
+    --paper-deep-orange-200: #ffab91;
+    --paper-deep-orange-300: #ff8a65;
+    --paper-deep-orange-400: #ff7043;
+    --paper-deep-orange-500: #ff5722;
+    --paper-deep-orange-600: #f4511e;
+    --paper-deep-orange-700: #e64a19;
+    --paper-deep-orange-800: #d84315;
+    --paper-deep-orange-900: #bf360c;
+    --paper-deep-orange-a100: #ff9e80;
+    --paper-deep-orange-a200: #ff6e40;
+    --paper-deep-orange-a400: #ff3d00;
+    --paper-deep-orange-a700: #dd2c00;
+ 
+    --paper-brown-50: #efebe9;
+    --paper-brown-100: #d7ccc8;
+    --paper-brown-200: #bcaaa4;
+    --paper-brown-300: #a1887f;
+    --paper-brown-400: #8d6e63;
+    --paper-brown-500: #795548;
+    --paper-brown-600: #6d4c41;
+    --paper-brown-700: #5d4037;
+    --paper-brown-800: #4e342e;
+    --paper-brown-900: #3e2723;
+ 
+    --paper-grey-50: #fafafa;
+    --paper-grey-100: #f5f5f5;
+    --paper-grey-200: #eeeeee;
+    --paper-grey-300: #e0e0e0;
+    --paper-grey-400: #bdbdbd;
+    --paper-grey-500: #9e9e9e;
+    --paper-grey-600: #757575;
+    --paper-grey-700: #616161;
+    --paper-grey-800: #424242;
+    --paper-grey-900: #212121;
+ 
+    --paper-blue-grey-50: #eceff1;
+    --paper-blue-grey-100: #cfd8dc;
+    --paper-blue-grey-200: #b0bec5;
+    --paper-blue-grey-300: #90a4ae;
+    --paper-blue-grey-400: #78909c;
+    --paper-blue-grey-500: #607d8b;
+    --paper-blue-grey-600: #546e7a;
+    --paper-blue-grey-700: #455a64;
+    --paper-blue-grey-800: #37474f;
+    --paper-blue-grey-900: #263238;
+
+    /* opacity for dark text on a light background */
+    --dark-divider-opacity: 0.12;
+    --dark-disabled-opacity: 0.38; /* or hint text or icon */
+    --dark-secondary-opacity: 0.54;
+    --dark-primary-opacity: 0.87;
+
+    /* opacity for light text on a dark background */
+    --light-divider-opacity: 0.12;
+    --light-disabled-opacity: 0.3; /* or hint text or icon */
+    --light-secondary-opacity: 0.7;
+    --light-primary-opacity: 1.0;
+
+  }
+
+</style>
+<!-- Taken from https://www.google.com/design/spec/style/color.html#color-ui-color-application -->
+
+<style is="custom-style">
+
+  :root {
+    /*
+     * You can use these generic variables in your elements for easy theming.
+     * For example, if all your elements use `--primary-text-color` as its main
+     * color, then switching from a light to a dark theme is just a matter of
+     * changing the value of `--primary-text-color` in your application.
+     */
+    --primary-text-color: var(--light-theme-text-color);
+    --primary-background-color: var(--light-theme-background-color);
+    --secondary-text-color: var(--light-theme-secondary-color);
+    --disabled-text-color: var(--light-theme-disabled-color);
+    --divider-color: var(--light-theme-divider-color);
+    --error-color: var(--paper-deep-orange-a700);
+
+    /*
+     * Primary and accent colors. Also see color.html for more colors.
+     */
+    --primary-color: var(--paper-indigo-500);
+    --light-primary-color: var(--paper-indigo-100);
+    --dark-primary-color: var(--paper-indigo-700);
+
+    --accent-color: var(--paper-pink-a200);
+    --light-accent-color: var(--paper-pink-a100);
+    --dark-accent-color: var(--paper-pink-a400);
+
+
+    /*
+     * Material Design Light background theme
+     */
+    --light-theme-background-color: #ffffff;
+    --light-theme-base-color: #000000;
+    --light-theme-text-color: var(--paper-grey-900);
+    --light-theme-secondary-color: #737373;  /* for secondary text and icons */
+    --light-theme-disabled-color: #9b9b9b;  /* disabled/hint text */
+    --light-theme-divider-color: #dbdbdb;
+
+    /*
+     * Material Design Dark background theme
+     */
+    --dark-theme-background-color: var(--paper-grey-900);
+    --dark-theme-base-color: #ffffff;
+    --dark-theme-text-color: #ffffff;
+    --dark-theme-secondary-color: #bcbcbc;  /* for secondary text and icons */
+    --dark-theme-disabled-color: #646464;  /* disabled/hint text */
+    --dark-theme-divider-color: #3c3c3c;
+
+    /*
+     * Deprecated values because of their confusing names.
+     */
+    --text-primary-color: var(--dark-theme-text-color);
+    --default-primary-color: var(--primary-color);
+
+  }
+
+</style>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+`iron-meta` is a generic element you can use for sharing information across the DOM tree.
+It uses [monostate pattern](http://c2.com/cgi/wiki?MonostatePattern) such that any
+instance of iron-meta has access to the shared
+information. You can use `iron-meta` to share whatever you want (or create an extension
+[like x-meta] for enhancements).
+
+The `iron-meta` instances containing your actual data can be loaded in an import,
+or constructed in any way you see fit. The only requirement is that you create them
+before you try to access them.
+
+Examples:
+
+If I create an instance like this:
+
+    <iron-meta key="info" value="foo/bar"></iron-meta>
+
+Note that value="foo/bar" is the metadata I've defined. I could define more
+attributes or use child nodes to define additional metadata.
+
+Now I can access that element (and it's metadata) from any iron-meta instance
+via the byKey method, e.g.
+
+    meta.byKey('info');
+
+Pure imperative form would be like:
+
+    document.createElement('iron-meta').byKey('info');
+
+Or, in a Polymer element, you can include a meta in your template:
+
+    <iron-meta id="meta"></iron-meta>
+    ...
+    this.$.meta.byKey('info');
+
+@group Iron Elements
+@demo demo/index.html
+@hero hero.svg
+@element iron-meta
+-->
+
+<script>
+
+  (function() {
+
+    // monostate data
+    var metaDatas = {};
+    var metaArrays = {};
+    var singleton = null;
+
+    Polymer.IronMeta = Polymer({
+
+      is: 'iron-meta',
+
+      properties: {
+
+        /**
+         * The type of meta-data.  All meta-data of the same type is stored
+         * together.
+         */
+        type: {
+          type: String,
+          value: 'default',
+          observer: '_typeChanged'
+        },
+
+        /**
+         * The key used to store `value` under the `type` namespace.
+         */
+        key: {
+          type: String,
+          observer: '_keyChanged'
+        },
+
+        /**
+         * The meta-data to store or retrieve.
+         */
+        value: {
+          type: Object,
+          notify: true,
+          observer: '_valueChanged'
+        },
+
+        /**
+         * If true, `value` is set to the iron-meta instance itself.
+         */
+         self: {
+          type: Boolean,
+          observer: '_selfChanged'
+        },
+
+        /**
+         * Array of all meta-data values for the given type.
+         */
+        list: {
+          type: Array,
+          notify: true
+        }
+
+      },
+
+      hostAttributes: {
+        hidden: true
+      },
+
+      /**
+       * Only runs if someone invokes the factory/constructor directly
+       * e.g. `new Polymer.IronMeta()`
+       *
+       * @param {{type: (string|undefined), key: (string|undefined), value}=} config
+       */
+      factoryImpl: function(config) {
+        if (config) {
+          for (var n in config) {
+            switch(n) {
+              case 'type':
+              case 'key':
+              case 'value':
+                this[n] = config[n];
+                break;
+            }
+          }
+        }
+      },
+
+      created: function() {
+        // TODO(sjmiles): good for debugging?
+        this._metaDatas = metaDatas;
+        this._metaArrays = metaArrays;
+      },
+
+      _keyChanged: function(key, old) {
+        this._resetRegistration(old);
+      },
+
+      _valueChanged: function(value) {
+        this._resetRegistration(this.key);
+      },
+
+      _selfChanged: function(self) {
+        if (self) {
+          this.value = this;
+        }
+      },
+
+      _typeChanged: function(type) {
+        this._unregisterKey(this.key);
+        if (!metaDatas[type]) {
+          metaDatas[type] = {};
+        }
+        this._metaData = metaDatas[type];
+        if (!metaArrays[type]) {
+          metaArrays[type] = [];
+        }
+        this.list = metaArrays[type];
+        this._registerKeyValue(this.key, this.value);
+      },
+
+      /**
+       * Retrieves meta data value by key.
+       *
+       * @method byKey
+       * @param {string} key The key of the meta-data to be returned.
+       * @return {*}
+       */
+      byKey: function(key) {
+        return this._metaData && this._metaData[key];
+      },
+
+      _resetRegistration: function(oldKey) {
+        this._unregisterKey(oldKey);
+        this._registerKeyValue(this.key, this.value);
+      },
+
+      _unregisterKey: function(key) {
+        this._unregister(key, this._metaData, this.list);
+      },
+
+      _registerKeyValue: function(key, value) {
+        this._register(key, value, this._metaData, this.list);
+      },
+
+      _register: function(key, value, data, list) {
+        if (key && data && value !== undefined) {
+          data[key] = value;
+          list.push(value);
+        }
+      },
+
+      _unregister: function(key, data, list) {
+        if (key && data) {
+          if (key in data) {
+            var value = data[key];
+            delete data[key];
+            this.arrayDelete(list, value);
+          }
+        }
+      }
+
+    });
+
+    Polymer.IronMeta.getIronMeta = function getIronMeta() {
+       if (singleton === null) {
+         singleton = new Polymer.IronMeta();
+       }
+       return singleton;
+     };
+
+    /**
+    `iron-meta-query` can be used to access infomation stored in `iron-meta`.
+
+    Examples:
+
+    If I create an instance like this:
+
+        <iron-meta key="info" value="foo/bar"></iron-meta>
+
+    Note that value="foo/bar" is the metadata I've defined. I could define more
+    attributes or use child nodes to define additional metadata.
+
+    Now I can access that element (and it's metadata) from any `iron-meta-query` instance:
+
+         var value = new Polymer.IronMetaQuery({key: 'info'}).value;
+
+    @group Polymer Iron Elements
+    @element iron-meta-query
+    */
+    Polymer.IronMetaQuery = Polymer({
+
+      is: 'iron-meta-query',
+
+      properties: {
+
+        /**
+         * The type of meta-data.  All meta-data of the same type is stored
+         * together.
+         */
+        type: {
+          type: String,
+          value: 'default',
+          observer: '_typeChanged'
+        },
+
+        /**
+         * Specifies a key to use for retrieving `value` from the `type`
+         * namespace.
+         */
+        key: {
+          type: String,
+          observer: '_keyChanged'
+        },
+
+        /**
+         * The meta-data to store or retrieve.
+         */
+        value: {
+          type: Object,
+          notify: true,
+          readOnly: true
+        },
+
+        /**
+         * Array of all meta-data values for the given type.
+         */
+        list: {
+          type: Array,
+          notify: true
+        }
+
+      },
+
+      /**
+       * Actually a factory method, not a true constructor. Only runs if
+       * someone invokes it directly (via `new Polymer.IronMeta()`);
+       *
+       * @param {{type: (string|undefined), key: (string|undefined)}=} config
+       */
+      factoryImpl: function(config) {
+        if (config) {
+          for (var n in config) {
+            switch(n) {
+              case 'type':
+              case 'key':
+                this[n] = config[n];
+                break;
+            }
+          }
+        }
+      },
+
+      created: function() {
+        // TODO(sjmiles): good for debugging?
+        this._metaDatas = metaDatas;
+        this._metaArrays = metaArrays;
+      },
+
+      _keyChanged: function(key) {
+        this._setValue(this._metaData && this._metaData[key]);
+      },
+
+      _typeChanged: function(type) {
+        this._metaData = metaDatas[type];
+        this.list = metaArrays[type];
+        if (this.key) {
+          this._keyChanged(this.key);
+        }
+      },
+
+      /**
+       * Retrieves meta data value by key.
+       * @param {string} key The key of the meta-data to be returned.
+       * @return {*}
+       */
+      byKey: function(key) {
+        return this._metaData && this._metaData[key];
+      }
+
+    });
+
+  })();
+</script>
+<script>
+  /**
+   * Singleton IronMeta instance.
+   */
+  Polymer.IronValidatableBehaviorMeta = null;
+
+  /**
+   * `Use Polymer.IronValidatableBehavior` to implement an element that validates user input.
+   * Use the related `Polymer.IronValidatorBehavior` to add custom validation logic to an iron-input.
+   *
+   * By default, an `<iron-form>` element validates its fields when the user presses the submit button.
+   * To validate a form imperatively, call the form's `validate()` method, which in turn will
+   * call `validate()` on all its children. By using `Polymer.IronValidatableBehavior`, your
+   * custom element will get a public `validate()`, which
+   * will return the validity of the element, and a corresponding `invalid` attribute,
+   * which can be used for styling.
+   *
+   * To implement the custom validation logic of your element, you must override
+   * the protected `_getValidity()` method of this behaviour, rather than `validate()`.
+   * See [this](https://github.com/PolymerElements/iron-form/blob/master/demo/simple-element.html)
+   * for an example.
+   *
+   * ### Accessibility
+   *
+   * Changing the `invalid` property, either manually or by calling `validate()` will update the
+   * `aria-invalid` attribute.
+   *
+   * @demo demo/index.html
+   * @polymerBehavior
+   */
+  Polymer.IronValidatableBehavior = {
+
+    properties: {
+
+      /**
+       * Name of the validator to use.
+       */
+      validator: {
+        type: String
+      },
+
+      /**
+       * True if the last call to `validate` is invalid.
+       */
+      invalid: {
+        notify: true,
+        reflectToAttribute: true,
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * This property is deprecated and should not be used. Use the global
+       * validator meta singleton, `Polymer.IronValidatableBehaviorMeta` instead.
+       */
+      _validatorMeta: {
+        type: Object
+      },
+
+      /**
+       * Namespace for this validator. This property is deprecated and should
+       * not be used. For all intents and purposes, please consider it a
+       * read-only, config-time property.
+       */
+      validatorType: {
+        type: String,
+        value: 'validator'
+      },
+
+      _validator: {
+        type: Object,
+        computed: '__computeValidator(validator)'
+      }
+    },
+
+    observers: [
+      '_invalidChanged(invalid)'
+    ],
+
+    registered: function() {
+      Polymer.IronValidatableBehaviorMeta = new Polymer.IronMeta({type: 'validator'});
+    },
+
+    _invalidChanged: function() {
+      if (this.invalid) {
+        this.setAttribute('aria-invalid', 'true');
+      } else {
+        this.removeAttribute('aria-invalid');
+      }
+    },
+
+    /**
+     * @return {boolean} True if the validator `validator` exists.
+     */
+    hasValidator: function() {
+      return this._validator != null;
+    },
+
+    /**
+     * Returns true if the `value` is valid, and updates `invalid`. If you want
+     * your element to have custom validation logic, do not override this method;
+     * override `_getValidity(value)` instead.
+
+     * @param {Object} value The value to be validated. By default, it is passed
+     * to the validator's `validate()` function, if a validator is set.
+     * @return {boolean} True if `value` is valid.
+     */
+    validate: function(value) {
+      this.invalid = !this._getValidity(value);
+      return !this.invalid;
+    },
+
+    /**
+     * Returns true if `value` is valid.  By default, it is passed
+     * to the validator's `validate()` function, if a validator is set. You
+     * should override this method if you want to implement custom validity
+     * logic for your element.
+     *
+     * @param {Object} value The value to be validated.
+     * @return {boolean} True if `value` is valid.
+     */
+
+    _getValidity: function(value) {
+      if (this.hasValidator()) {
+        return this._validator.validate(value);
+      }
+      return true;
+    },
+
+    __computeValidator: function() {
+      return Polymer.IronValidatableBehaviorMeta &&
+          Polymer.IronValidatableBehaviorMeta.byKey(this.validator);
+    }
+  };
+
+</script>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<script>
+  /**
+  Polymer.IronFormElementBehavior enables a custom element to be included
+  in an `iron-form`.
+
+  @demo demo/index.html
+  @polymerBehavior
+  */
+  Polymer.IronFormElementBehavior = {
+
+    properties: {
+      /**
+       * Fired when the element is added to an `iron-form`.
+       *
+       * @event iron-form-element-register
+       */
+
+      /**
+       * Fired when the element is removed from an `iron-form`.
+       *
+       * @event iron-form-element-unregister
+       */
+
+      /**
+       * The name of this element.
+       */
+      name: {
+        type: String
+      },
+
+      /**
+       * The value for this element.
+       */
+      value: {
+        notify: true,
+        type: String
+      },
+
+      /**
+       * Set to true to mark the input as required. If used in a form, a
+       * custom element that uses this behavior should also use
+       * Polymer.IronValidatableBehavior and define a custom validation method.
+       * Otherwise, a `required` element will always be considered valid.
+       * It's also strongly recommended to provide a visual style for the element
+       * when its value is invalid.
+       */
+      required: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * The form that the element is registered to.
+       */
+      _parentForm: {
+        type: Object
+      }
+    },
+
+    attached: function() {
+      // Note: the iron-form that this element belongs to will set this
+      // element's _parentForm property when handling this event.
+      this.fire('iron-form-element-register');
+    },
+
+    detached: function() {
+      if (this._parentForm) {
+        this._parentForm.fire('iron-form-element-unregister', {target: this});
+      }
+    }
+
+  };
+
+</script>
+<script>
+
+  /**
+   * Use `Polymer.IronCheckedElementBehavior` to implement a custom element
+   * that has a `checked` property, which can be used for validation if the
+   * element is also `required`. Element instances implementing this behavior
+   * will also be registered for use in an `iron-form` element.
+   *
+   * @demo demo/index.html
+   * @polymerBehavior Polymer.IronCheckedElementBehavior
+   */
+  Polymer.IronCheckedElementBehaviorImpl = {
+
+    properties: {
+      /**
+       * Fired when the checked state changes.
+       *
+       * @event iron-change
+       */
+
+      /**
+       * Gets or sets the state, `true` is checked and `false` is unchecked.
+       */
+      checked: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+        notify: true,
+        observer: '_checkedChanged'
+      },
+
+      /**
+       * If true, the button toggles the active state with each tap or press
+       * of the spacebar.
+       */
+      toggles: {
+        type: Boolean,
+        value: true,
+        reflectToAttribute: true
+      },
+
+      /* Overriden from Polymer.IronFormElementBehavior */
+      value: {
+        type: String,
+        value: 'on',
+        observer: '_valueChanged'
+      }
+    },
+
+    observers: [
+      '_requiredChanged(required)'
+    ],
+
+    created: function() {
+      // Used by `iron-form` to handle the case that an element with this behavior
+      // doesn't have a role of 'checkbox' or 'radio', but should still only be
+      // included when the form is serialized if `this.checked === true`.
+      this._hasIronCheckedElementBehavior = true;
+    },
+
+    /**
+     * Returns false if the element is required and not checked, and true otherwise.
+     * @param {*=} _value Ignored.
+     * @return {boolean} true if `required` is false or if `checked` is true.
+     */
+    _getValidity: function(_value) {
+      return this.disabled || !this.required || this.checked;
+    },
+
+    /**
+     * Update the aria-required label when `required` is changed.
+     */
+    _requiredChanged: function() {
+      if (this.required) {
+        this.setAttribute('aria-required', 'true');
+      } else {
+        this.removeAttribute('aria-required');
+      }
+    },
+
+    /**
+     * Fire `iron-changed` when the checked state changes.
+     */
+    _checkedChanged: function() {
+      this.active = this.checked;
+      this.fire('iron-change');
+    },
+
+    /**
+     * Reset value to 'on' if it is set to `undefined`.
+     */
+    _valueChanged: function() {
+      if (this.value === undefined || this.value === null) {
+        this.value = 'on';
+      }
+    }
+  };
+
+  /** @polymerBehavior Polymer.IronCheckedElementBehavior */
+  Polymer.IronCheckedElementBehavior = [
+    Polymer.IronFormElementBehavior,
+    Polymer.IronValidatableBehavior,
+    Polymer.IronCheckedElementBehaviorImpl
+  ];
+
+</script>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!--
+@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -9149,16 +10171,6 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <script>
 
   /**
@@ -9489,421 +10501,1276 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<script>
-  /**
-  Polymer.IronFormElementBehavior enables a custom element to be included
-  in an `iron-form`.
+<!--
+@license
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
 
-  @demo demo/index.html
-  @polymerBehavior
-  */
-  Polymer.IronFormElementBehavior = {
+<!--
+Material design: [Surface reaction](https://www.google.com/design/spec/animation/responsive-interaction.html#responsive-interaction-surface-reaction)
 
-    properties: {
-      /**
-       * Fired when the element is added to an `iron-form`.
-       *
-       * @event iron-form-element-register
-       */
+`paper-ripple` provides a visual effect that other paper elements can
+use to simulate a rippling effect emanating from the point of contact.  The
+effect can be visualized as a concentric circle with motion.
 
-      /**
-       * Fired when the element is removed from an `iron-form`.
-       *
-       * @event iron-form-element-unregister
-       */
+Example:
 
-      /**
-       * The name of this element.
-       */
-      name: {
-        type: String
-      },
+    <div style="position:relative">
+      <paper-ripple></paper-ripple>
+    </div>
 
-      /**
-       * The value for this element.
-       */
-      value: {
-        notify: true,
-        type: String
-      },
+Note, it's important that the parent container of the ripple be relative position, otherwise
+the ripple will emanate outside of the desired container.
 
-      /**
-       * Set to true to mark the input as required. If used in a form, a
-       * custom element that uses this behavior should also use
-       * Polymer.IronValidatableBehavior and define a custom validation method.
-       * Otherwise, a `required` element will always be considered valid.
-       * It's also strongly recommended to provide a visual style for the element
-       * when its value is invalid.
-       */
-      required: {
-        type: Boolean,
-        value: false
-      },
+`paper-ripple` listens to "mousedown" and "mouseup" events so it would display ripple
+effect when touches on it.  You can also defeat the default behavior and
+manually route the down and up actions to the ripple element.  Note that it is
+important if you call `downAction()` you will have to make sure to call
+`upAction()` so that `paper-ripple` would end the animation loop.
 
-      /**
-       * The form that the element is registered to.
-       */
-      _parentForm: {
-        type: Object
-      }
+Example:
+
+    <paper-ripple id="ripple" style="pointer-events: none;"></paper-ripple>
+    ...
+    downAction: function(e) {
+      this.$.ripple.downAction({detail: {x: e.x, y: e.y}});
     },
-
-    attached: function() {
-      // Note: the iron-form that this element belongs to will set this
-      // element's _parentForm property when handling this event.
-      this.fire('iron-form-element-register');
-    },
-
-    detached: function() {
-      if (this._parentForm) {
-        this._parentForm.fire('iron-form-element-unregister', {target: this});
-      }
+    upAction: function(e) {
+      this.$.ripple.upAction();
     }
 
-  };
+Styling ripple effect:
 
-</script>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
+  Use CSS color property to style the ripple:
 
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
+    paper-ripple {
+      color: #4285f4;
+    }
 
-<!--
-`iron-meta` is a generic element you can use for sharing information across the DOM tree.
-It uses [monostate pattern](http://c2.com/cgi/wiki?MonostatePattern) such that any
-instance of iron-meta has access to the shared
-information. You can use `iron-meta` to share whatever you want (or create an extension
-[like x-meta] for enhancements).
+  Note that CSS color property is inherited so it is not required to set it on
+  the `paper-ripple` element directly.
 
-The `iron-meta` instances containing your actual data can be loaded in an import,
-or constructed in any way you see fit. The only requirement is that you create them
-before you try to access them.
+By default, the ripple is centered on the point of contact.  Apply the `recenters`
+attribute to have the ripple grow toward the center of its container.
 
-Examples:
+    <paper-ripple recenters></paper-ripple>
 
-If I create an instance like this:
+You can also  center the ripple inside its container from the start.
 
-    <iron-meta key="info" value="foo/bar"></iron-meta>
+    <paper-ripple center></paper-ripple>
 
-Note that value="foo/bar" is the metadata I've defined. I could define more
-attributes or use child nodes to define additional metadata.
+Apply `circle` class to make the rippling effect within a circle.
 
-Now I can access that element (and it's metadata) from any iron-meta instance
-via the byKey method, e.g.
+    <paper-ripple class="circle"></paper-ripple>
 
-    meta.byKey('info');
-
-Pure imperative form would be like:
-
-    document.createElement('iron-meta').byKey('info');
-
-Or, in a Polymer element, you can include a meta in your template:
-
-    <iron-meta id="meta"></iron-meta>
-    ...
-    this.$.meta.byKey('info');
-
-@group Iron Elements
-@demo demo/index.html
+@group Paper Elements
+@element paper-ripple
 @hero hero.svg
-@element iron-meta
+@demo demo/index.html
 -->
 
-<script>
+<dom-module id="paper-ripple" assetpath="../node_modules/@bower_components/paper-ripple/">
 
-  (function() {
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: absolute;
+        border-radius: inherit;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
 
-    // monostate data
-    var metaDatas = {};
-    var metaArrays = {};
-    var singleton = null;
-
-    Polymer.IronMeta = Polymer({
-
-      is: 'iron-meta',
-
-      properties: {
-
-        /**
-         * The type of meta-data.  All meta-data of the same type is stored
-         * together.
-         */
-        type: {
-          type: String,
-          value: 'default',
-          observer: '_typeChanged'
-        },
-
-        /**
-         * The key used to store `value` under the `type` namespace.
-         */
-        key: {
-          type: String,
-          observer: '_keyChanged'
-        },
-
-        /**
-         * The meta-data to store or retrieve.
-         */
-        value: {
-          type: Object,
-          notify: true,
-          observer: '_valueChanged'
-        },
-
-        /**
-         * If true, `value` is set to the iron-meta instance itself.
-         */
-         self: {
-          type: Boolean,
-          observer: '_selfChanged'
-        },
-
-        /**
-         * Array of all meta-data values for the given type.
-         */
-        list: {
-          type: Array,
-          notify: true
-        }
-
-      },
-
-      hostAttributes: {
-        hidden: true
-      },
-
-      /**
-       * Only runs if someone invokes the factory/constructor directly
-       * e.g. `new Polymer.IronMeta()`
-       *
-       * @param {{type: (string|undefined), key: (string|undefined), value}=} config
-       */
-      factoryImpl: function(config) {
-        if (config) {
-          for (var n in config) {
-            switch(n) {
-              case 'type':
-              case 'key':
-              case 'value':
-                this[n] = config[n];
-                break;
-            }
-          }
-        }
-      },
-
-      created: function() {
-        // TODO(sjmiles): good for debugging?
-        this._metaDatas = metaDatas;
-        this._metaArrays = metaArrays;
-      },
-
-      _keyChanged: function(key, old) {
-        this._resetRegistration(old);
-      },
-
-      _valueChanged: function(value) {
-        this._resetRegistration(this.key);
-      },
-
-      _selfChanged: function(self) {
-        if (self) {
-          this.value = this;
-        }
-      },
-
-      _typeChanged: function(type) {
-        this._unregisterKey(this.key);
-        if (!metaDatas[type]) {
-          metaDatas[type] = {};
-        }
-        this._metaData = metaDatas[type];
-        if (!metaArrays[type]) {
-          metaArrays[type] = [];
-        }
-        this.list = metaArrays[type];
-        this._registerKeyValue(this.key, this.value);
-      },
-
-      /**
-       * Retrieves meta data value by key.
-       *
-       * @method byKey
-       * @param {string} key The key of the meta-data to be returned.
-       * @return {*}
-       */
-      byKey: function(key) {
-        return this._metaData && this._metaData[key];
-      },
-
-      _resetRegistration: function(oldKey) {
-        this._unregisterKey(oldKey);
-        this._registerKeyValue(this.key, this.value);
-      },
-
-      _unregisterKey: function(key) {
-        this._unregister(key, this._metaData, this.list);
-      },
-
-      _registerKeyValue: function(key, value) {
-        this._register(key, value, this._metaData, this.list);
-      },
-
-      _register: function(key, value, data, list) {
-        if (key && data && value !== undefined) {
-          data[key] = value;
-          list.push(value);
-        }
-      },
-
-      _unregister: function(key, data, list) {
-        if (key && data) {
-          if (key in data) {
-            var value = data[key];
-            delete data[key];
-            this.arrayDelete(list, value);
-          }
-        }
+        /* See PolymerElements/paper-behaviors/issues/34. On non-Chrome browsers,
+         * creating a node (with a position:absolute) in the middle of an event
+         * handler "interrupts" that event handler (which happens when the
+         * ripple is created on demand) */
+        pointer-events: none;
       }
 
-    });
+      :host([animating]) {
+        /* This resolves a rendering issue in Chrome (as of 40) where the
+           ripple is not properly clipped by its parent (which may have
+           rounded corners). See: http://jsbin.com/temexa/4
 
-    Polymer.IronMeta.getIronMeta = function getIronMeta() {
-       if (singleton === null) {
-         singleton = new Polymer.IronMeta();
-       }
-       return singleton;
-     };
+           Note: We only apply this style conditionally. Otherwise, the browser
+           will create a new compositing layer for every ripple element on the
+           page, and that would be bad. */
+        -webkit-transform: translate(0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+
+      #background,
+      #waves,
+      .wave-container,
+      .wave {
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #background,
+      .wave {
+        opacity: 0;
+      }
+
+      #waves,
+      .wave {
+        overflow: hidden;
+      }
+
+      .wave-container,
+      .wave {
+        border-radius: 50%;
+      }
+
+      :host(.circle) #background,
+      :host(.circle) #waves {
+        border-radius: 50%;
+      }
+
+      :host(.circle) .wave-container {
+        overflow: hidden;
+      }
+    </style>
+
+    <div id="background"></div>
+    <div id="waves"></div>
+  </template>
+</dom-module>
+<script>
+  (function() {
+    var Utility = {
+      distance: function(x1, y1, x2, y2) {
+        var xDelta = (x1 - x2);
+        var yDelta = (y1 - y2);
+
+        return Math.sqrt(xDelta * xDelta + yDelta * yDelta);
+      },
+
+      now: window.performance && window.performance.now ?
+          window.performance.now.bind(window.performance) : Date.now
+    };
 
     /**
-    `iron-meta-query` can be used to access infomation stored in `iron-meta`.
+     * @param {HTMLElement} element
+     * @constructor
+     */
+    function ElementMetrics(element) {
+      this.element = element;
+      this.width = this.boundingRect.width;
+      this.height = this.boundingRect.height;
 
-    Examples:
+      this.size = Math.max(this.width, this.height);
+    }
 
-    If I create an instance like this:
-
-        <iron-meta key="info" value="foo/bar"></iron-meta>
-
-    Note that value="foo/bar" is the metadata I've defined. I could define more
-    attributes or use child nodes to define additional metadata.
-
-    Now I can access that element (and it's metadata) from any `iron-meta-query` instance:
-
-         var value = new Polymer.IronMetaQuery({key: 'info'}).value;
-
-    @group Polymer Iron Elements
-    @element iron-meta-query
-    */
-    Polymer.IronMetaQuery = Polymer({
-
-      is: 'iron-meta-query',
-
-      properties: {
-
-        /**
-         * The type of meta-data.  All meta-data of the same type is stored
-         * together.
-         */
-        type: {
-          type: String,
-          value: 'default',
-          observer: '_typeChanged'
-        },
-
-        /**
-         * Specifies a key to use for retrieving `value` from the `type`
-         * namespace.
-         */
-        key: {
-          type: String,
-          observer: '_keyChanged'
-        },
-
-        /**
-         * The meta-data to store or retrieve.
-         */
-        value: {
-          type: Object,
-          notify: true,
-          readOnly: true
-        },
-
-        /**
-         * Array of all meta-data values for the given type.
-         */
-        list: {
-          type: Array,
-          notify: true
-        }
-
+    ElementMetrics.prototype = {
+      get boundingRect () {
+        return this.element.getBoundingClientRect();
       },
 
-      /**
-       * Actually a factory method, not a true constructor. Only runs if
-       * someone invokes it directly (via `new Polymer.IronMeta()`);
-       *
-       * @param {{type: (string|undefined), key: (string|undefined)}=} config
-       */
-      factoryImpl: function(config) {
-        if (config) {
-          for (var n in config) {
-            switch(n) {
-              case 'type':
-              case 'key':
-                this[n] = config[n];
-                break;
-            }
+      furthestCornerDistanceFrom: function(x, y) {
+        var topLeft = Utility.distance(x, y, 0, 0);
+        var topRight = Utility.distance(x, y, this.width, 0);
+        var bottomLeft = Utility.distance(x, y, 0, this.height);
+        var bottomRight = Utility.distance(x, y, this.width, this.height);
+
+        return Math.max(topLeft, topRight, bottomLeft, bottomRight);
+      }
+    };
+
+    /**
+     * @param {HTMLElement} element
+     * @constructor
+     */
+    function Ripple(element) {
+      this.element = element;
+      this.color = window.getComputedStyle(element).color;
+
+      this.wave = document.createElement('div');
+      this.waveContainer = document.createElement('div');
+      this.wave.style.backgroundColor = this.color;
+      this.wave.classList.add('wave');
+      this.waveContainer.classList.add('wave-container');
+      Polymer.dom(this.waveContainer).appendChild(this.wave);
+
+      this.resetInteractionState();
+    }
+
+    Ripple.MAX_RADIUS = 300;
+
+    Ripple.prototype = {
+      get recenters() {
+        return this.element.recenters;
+      },
+
+      get center() {
+        return this.element.center;
+      },
+
+      get mouseDownElapsed() {
+        var elapsed;
+
+        if (!this.mouseDownStart) {
+          return 0;
+        }
+
+        elapsed = Utility.now() - this.mouseDownStart;
+
+        if (this.mouseUpStart) {
+          elapsed -= this.mouseUpElapsed;
+        }
+
+        return elapsed;
+      },
+
+      get mouseUpElapsed() {
+        return this.mouseUpStart ?
+          Utility.now () - this.mouseUpStart : 0;
+      },
+
+      get mouseDownElapsedSeconds() {
+        return this.mouseDownElapsed / 1000;
+      },
+
+      get mouseUpElapsedSeconds() {
+        return this.mouseUpElapsed / 1000;
+      },
+
+      get mouseInteractionSeconds() {
+        return this.mouseDownElapsedSeconds + this.mouseUpElapsedSeconds;
+      },
+
+      get initialOpacity() {
+        return this.element.initialOpacity;
+      },
+
+      get opacityDecayVelocity() {
+        return this.element.opacityDecayVelocity;
+      },
+
+      get radius() {
+        var width2 = this.containerMetrics.width * this.containerMetrics.width;
+        var height2 = this.containerMetrics.height * this.containerMetrics.height;
+        var waveRadius = Math.min(
+          Math.sqrt(width2 + height2),
+          Ripple.MAX_RADIUS
+        ) * 1.1 + 5;
+
+        var duration = 1.1 - 0.2 * (waveRadius / Ripple.MAX_RADIUS);
+        var timeNow = this.mouseInteractionSeconds / duration;
+        var size = waveRadius * (1 - Math.pow(80, -timeNow));
+
+        return Math.abs(size);
+      },
+
+      get opacity() {
+        if (!this.mouseUpStart) {
+          return this.initialOpacity;
+        }
+
+        return Math.max(
+          0,
+          this.initialOpacity - this.mouseUpElapsedSeconds * this.opacityDecayVelocity
+        );
+      },
+
+      get outerOpacity() {
+        // Linear increase in background opacity, capped at the opacity
+        // of the wavefront (waveOpacity).
+        var outerOpacity = this.mouseUpElapsedSeconds * 0.3;
+        var waveOpacity = this.opacity;
+
+        return Math.max(
+          0,
+          Math.min(outerOpacity, waveOpacity)
+        );
+      },
+
+      get isOpacityFullyDecayed() {
+        return this.opacity < 0.01 &&
+          this.radius >= Math.min(this.maxRadius, Ripple.MAX_RADIUS);
+      },
+
+      get isRestingAtMaxRadius() {
+        return this.opacity >= this.initialOpacity &&
+          this.radius >= Math.min(this.maxRadius, Ripple.MAX_RADIUS);
+      },
+
+      get isAnimationComplete() {
+        return this.mouseUpStart ?
+          this.isOpacityFullyDecayed : this.isRestingAtMaxRadius;
+      },
+
+      get translationFraction() {
+        return Math.min(
+          1,
+          this.radius / this.containerMetrics.size * 2 / Math.sqrt(2)
+        );
+      },
+
+      get xNow() {
+        if (this.xEnd) {
+          return this.xStart + this.translationFraction * (this.xEnd - this.xStart);
+        }
+
+        return this.xStart;
+      },
+
+      get yNow() {
+        if (this.yEnd) {
+          return this.yStart + this.translationFraction * (this.yEnd - this.yStart);
+        }
+
+        return this.yStart;
+      },
+
+      get isMouseDown() {
+        return this.mouseDownStart && !this.mouseUpStart;
+      },
+
+      resetInteractionState: function() {
+        this.maxRadius = 0;
+        this.mouseDownStart = 0;
+        this.mouseUpStart = 0;
+
+        this.xStart = 0;
+        this.yStart = 0;
+        this.xEnd = 0;
+        this.yEnd = 0;
+        this.slideDistance = 0;
+
+        this.containerMetrics = new ElementMetrics(this.element);
+      },
+
+      draw: function() {
+        var scale;
+        var translateString;
+        var dx;
+        var dy;
+
+        this.wave.style.opacity = this.opacity;
+
+        scale = this.radius / (this.containerMetrics.size / 2);
+        dx = this.xNow - (this.containerMetrics.width / 2);
+        dy = this.yNow - (this.containerMetrics.height / 2);
+
+
+        // 2d transform for safari because of border-radius and overflow:hidden clipping bug.
+        // https://bugs.webkit.org/show_bug.cgi?id=98538
+        this.waveContainer.style.webkitTransform = 'translate(' + dx + 'px, ' + dy + 'px)';
+        this.waveContainer.style.transform = 'translate3d(' + dx + 'px, ' + dy + 'px, 0)';
+        this.wave.style.webkitTransform = 'scale(' + scale + ',' + scale + ')';
+        this.wave.style.transform = 'scale3d(' + scale + ',' + scale + ',1)';
+      },
+
+      /** @param {Event=} event */
+      downAction: function(event) {
+        var xCenter = this.containerMetrics.width / 2;
+        var yCenter = this.containerMetrics.height / 2;
+
+        this.resetInteractionState();
+        this.mouseDownStart = Utility.now();
+
+        if (this.center) {
+          this.xStart = xCenter;
+          this.yStart = yCenter;
+          this.slideDistance = Utility.distance(
+            this.xStart, this.yStart, this.xEnd, this.yEnd
+          );
+        } else {
+          this.xStart = event ?
+              event.detail.x - this.containerMetrics.boundingRect.left :
+              this.containerMetrics.width / 2;
+          this.yStart = event ?
+              event.detail.y - this.containerMetrics.boundingRect.top :
+              this.containerMetrics.height / 2;
+        }
+
+        if (this.recenters) {
+          this.xEnd = xCenter;
+          this.yEnd = yCenter;
+          this.slideDistance = Utility.distance(
+            this.xStart, this.yStart, this.xEnd, this.yEnd
+          );
+        }
+
+        this.maxRadius = this.containerMetrics.furthestCornerDistanceFrom(
+          this.xStart,
+          this.yStart
+        );
+
+        this.waveContainer.style.top =
+          (this.containerMetrics.height - this.containerMetrics.size) / 2 + 'px';
+        this.waveContainer.style.left =
+          (this.containerMetrics.width - this.containerMetrics.size) / 2 + 'px';
+
+        this.waveContainer.style.width = this.containerMetrics.size + 'px';
+        this.waveContainer.style.height = this.containerMetrics.size + 'px';
+      },
+
+      /** @param {Event=} event */
+      upAction: function(event) {
+        if (!this.isMouseDown) {
+          return;
+        }
+
+        this.mouseUpStart = Utility.now();
+      },
+
+      remove: function() {
+        Polymer.dom(this.waveContainer.parentNode).removeChild(
+          this.waveContainer
+        );
+      }
+    };
+
+    Polymer({
+      is: 'paper-ripple',
+
+      behaviors: [
+        Polymer.IronA11yKeysBehavior
+      ],
+
+      properties: {
+        /**
+         * The initial opacity set on the wave.
+         *
+         * @attribute initialOpacity
+         * @type number
+         * @default 0.25
+         */
+        initialOpacity: {
+          type: Number,
+          value: 0.25
+        },
+
+        /**
+         * How fast (opacity per second) the wave fades out.
+         *
+         * @attribute opacityDecayVelocity
+         * @type number
+         * @default 0.8
+         */
+        opacityDecayVelocity: {
+          type: Number,
+          value: 0.8
+        },
+
+        /**
+         * If true, ripples will exhibit a gravitational pull towards
+         * the center of their container as they fade away.
+         *
+         * @attribute recenters
+         * @type boolean
+         * @default false
+         */
+        recenters: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * If true, ripples will center inside its container
+         *
+         * @attribute recenters
+         * @type boolean
+         * @default false
+         */
+        center: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * A list of the visual ripples.
+         *
+         * @attribute ripples
+         * @type Array
+         * @default []
+         */
+        ripples: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        /**
+         * True when there are visible ripples animating within the
+         * element.
+         */
+        animating: {
+          type: Boolean,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: false
+        },
+
+        /**
+         * If true, the ripple will remain in the "down" state until `holdDown`
+         * is set to false again.
+         */
+        holdDown: {
+          type: Boolean,
+          value: false,
+          observer: '_holdDownChanged'
+        },
+
+        /**
+         * If true, the ripple will not generate a ripple effect
+         * via pointer interaction.
+         * Calling ripple's imperative api like `simulatedRipple` will
+         * still generate the ripple effect.
+         */
+        noink: {
+          type: Boolean,
+          value: false
+        },
+
+        _animating: {
+          type: Boolean
+        },
+
+        _boundAnimate: {
+          type: Function,
+          value: function() {
+            return this.animate.bind(this);
           }
         }
       },
 
-      created: function() {
-        // TODO(sjmiles): good for debugging?
-        this._metaDatas = metaDatas;
-        this._metaArrays = metaArrays;
+      get target () {
+        return this.keyEventTarget;
       },
 
-      _keyChanged: function(key) {
-        this._setValue(this._metaData && this._metaData[key]);
+      keyBindings: {
+        'enter:keydown': '_onEnterKeydown',
+        'space:keydown': '_onSpaceKeydown',
+        'space:keyup': '_onSpaceKeyup'
       },
 
-      _typeChanged: function(type) {
-        this._metaData = metaDatas[type];
-        this.list = metaArrays[type];
-        if (this.key) {
-          this._keyChanged(this.key);
+      attached: function() {
+        // Set up a11yKeysBehavior to listen to key events on the target,
+        // so that space and enter activate the ripple even if the target doesn't
+        // handle key events. The key handlers deal with `noink` themselves.
+        if (this.parentNode.nodeType == 11) { // DOCUMENT_FRAGMENT_NODE
+          this.keyEventTarget = Polymer.dom(this).getOwnerRoot().host;
+        } else {
+          this.keyEventTarget = this.parentNode;
+        }
+        var keyEventTarget = /** @type {!EventTarget} */ (this.keyEventTarget);
+        this.listen(keyEventTarget, 'up', 'uiUpAction');
+        this.listen(keyEventTarget, 'down', 'uiDownAction');
+      },
+
+      detached: function() {
+        this.unlisten(this.keyEventTarget, 'up', 'uiUpAction');
+        this.unlisten(this.keyEventTarget, 'down', 'uiDownAction');
+        this.keyEventTarget = null;
+      },
+
+      get shouldKeepAnimating () {
+        for (var index = 0; index < this.ripples.length; ++index) {
+          if (!this.ripples[index].isAnimationComplete) {
+            return true;
+          }
+        }
+
+        return false;
+      },
+
+      simulatedRipple: function() {
+        this.downAction(null);
+
+        // Please see polymer/polymer#1305
+        this.async(function() {
+          this.upAction();
+        }, 1);
+      },
+
+      /**
+       * Provokes a ripple down effect via a UI event,
+       * respecting the `noink` property.
+       * @param {Event=} event
+       */
+      uiDownAction: function(event) {
+        if (!this.noink) {
+          this.downAction(event);
         }
       },
 
       /**
-       * Retrieves meta data value by key.
-       * @param {string} key The key of the meta-data to be returned.
-       * @return {*}
+       * Provokes a ripple down effect via a UI event,
+       * *not* respecting the `noink` property.
+       * @param {Event=} event
        */
-      byKey: function(key) {
-        return this._metaData && this._metaData[key];
+      downAction: function(event) {
+        if (this.holdDown && this.ripples.length > 0) {
+          return;
+        }
+
+        var ripple = this.addRipple();
+
+        ripple.downAction(event);
+
+        if (!this._animating) {
+          this._animating = true;
+          this.animate();
+        }
+      },
+
+      /**
+       * Provokes a ripple up effect via a UI event,
+       * respecting the `noink` property.
+       * @param {Event=} event
+       */
+      uiUpAction: function(event) {
+        if (!this.noink) {
+          this.upAction(event);
+        }
+      },
+
+      /**
+       * Provokes a ripple up effect via a UI event,
+       * *not* respecting the `noink` property.
+       * @param {Event=} event
+       */
+      upAction: function(event) {
+        if (this.holdDown) {
+          return;
+        }
+
+        this.ripples.forEach(function(ripple) {
+          ripple.upAction(event);
+        });
+
+        this._animating = true;
+        this.animate();
+      },
+
+      onAnimationComplete: function() {
+        this._animating = false;
+        this.$.background.style.backgroundColor = null;
+        this.fire('transitionend');
+      },
+
+      addRipple: function() {
+        var ripple = new Ripple(this);
+
+        Polymer.dom(this.$.waves).appendChild(ripple.waveContainer);
+        this.$.background.style.backgroundColor = ripple.color;
+        this.ripples.push(ripple);
+
+        this._setAnimating(true);
+
+        return ripple;
+      },
+
+      removeRipple: function(ripple) {
+        var rippleIndex = this.ripples.indexOf(ripple);
+
+        if (rippleIndex < 0) {
+          return;
+        }
+
+        this.ripples.splice(rippleIndex, 1);
+
+        ripple.remove();
+
+        if (!this.ripples.length) {
+          this._setAnimating(false);
+        }
+      },
+
+      /**
+       * This conflicts with Element#antimate().
+       * https://developer.mozilla.org/en-US/docs/Web/API/Element/animate
+       * @suppress {checkTypes}
+       */
+      animate: function() {
+        if (!this._animating) {
+          return;
+        }
+        var index;
+        var ripple;
+
+        for (index = 0; index < this.ripples.length; ++index) {
+          ripple = this.ripples[index];
+
+          ripple.draw();
+
+          this.$.background.style.opacity = ripple.outerOpacity;
+
+          if (ripple.isOpacityFullyDecayed && !ripple.isRestingAtMaxRadius) {
+            this.removeRipple(ripple);
+          }
+        }
+
+        if (!this.shouldKeepAnimating && this.ripples.length === 0) {
+          this.onAnimationComplete();
+        } else {
+          window.requestAnimationFrame(this._boundAnimate);
+        }
+      },
+
+      _onEnterKeydown: function() {
+        this.uiDownAction();
+        this.async(this.uiUpAction, 1);
+      },
+
+      _onSpaceKeydown: function() {
+        this.uiDownAction();
+      },
+
+      _onSpaceKeyup: function() {
+        this.uiUpAction();
+      },
+
+      // note: holdDown does not respect noink since it can be a focus based
+      // effect.
+      _holdDownChanged: function(newVal, oldVal) {
+        if (oldVal === undefined) {
+          return;
+        }
+        if (newVal) {
+          this.downAction();
+        } else {
+          this.upAction();
+        }
+      }
+
+      /**
+      Fired when the animation finishes.
+      This is useful if you want to wait until
+      the ripple animation finishes to perform some action.
+
+      @event transitionend
+      @param {{node: Object}} detail Contains the animated node.
+      */
+    });
+  })();
+</script>
+<script>
+  /**
+   * `Polymer.PaperRippleBehavior` dynamically implements a ripple
+   * when the element has focus via pointer or keyboard.
+   *
+   * NOTE: This behavior is intended to be used in conjunction with and after
+   * `Polymer.IronButtonState` and `Polymer.IronControlState`.
+   *
+   * @polymerBehavior Polymer.PaperRippleBehavior
+   */
+  Polymer.PaperRippleBehavior = {
+    properties: {
+      /**
+       * If true, the element will not produce a ripple effect when interacted
+       * with via the pointer.
+       */
+      noink: {
+        type: Boolean,
+        observer: '_noinkChanged'
+      },
+
+      /**
+       * @type {Element|undefined}
+       */
+      _rippleContainer: {
+        type: Object,
+      }
+    },
+
+    /**
+     * Ensures a `<paper-ripple>` element is available when the element is
+     * focused.
+     */
+    _buttonStateChanged: function() {
+      if (this.focused) {
+        this.ensureRipple();
+      }
+    },
+
+    /**
+     * In addition to the functionality provided in `IronButtonState`, ensures
+     * a ripple effect is created when the element is in a `pressed` state.
+     */
+    _downHandler: function(event) {
+      Polymer.IronButtonStateImpl._downHandler.call(this, event);
+      if (this.pressed) {
+        this.ensureRipple(event);
+      }
+    },
+
+    /**
+     * Ensures this element contains a ripple effect. For startup efficiency
+     * the ripple effect is dynamically on demand when needed.
+     * @param {!Event=} optTriggeringEvent (optional) event that triggered the
+     * ripple.
+     */
+    ensureRipple: function(optTriggeringEvent) {
+      if (!this.hasRipple()) {
+        this._ripple = this._createRipple();
+        this._ripple.noink = this.noink;
+        var rippleContainer = this._rippleContainer || this.root;
+        if (rippleContainer) {
+          Polymer.dom(rippleContainer).appendChild(this._ripple);
+        }
+        if (optTriggeringEvent) {
+          // Check if the event happened inside of the ripple container
+          // Fall back to host instead of the root because distributed text
+          // nodes are not valid event targets
+          var domContainer = Polymer.dom(this._rippleContainer || this);
+          var target = Polymer.dom(optTriggeringEvent).rootTarget;
+          if (domContainer.deepContains( /** @type {Node} */(target))) {
+            this._ripple.uiDownAction(optTriggeringEvent);
+          }
+        }
+      }
+    },
+
+    /**
+     * Returns the `<paper-ripple>` element used by this element to create
+     * ripple effects. The element's ripple is created on demand, when
+     * necessary, and calling this method will force the
+     * ripple to be created.
+     */
+    getRipple: function() {
+      this.ensureRipple();
+      return this._ripple;
+    },
+
+    /**
+     * Returns true if this element currently contains a ripple effect.
+     * @return {boolean}
+     */
+    hasRipple: function() {
+      return Boolean(this._ripple);
+    },
+
+    /**
+     * Create the element's ripple effect via creating a `<paper-ripple>`.
+     * Override this method to customize the ripple element.
+     * @return {!PaperRippleElement} Returns a `<paper-ripple>` element.
+     */
+    _createRipple: function() {
+      return /** @type {!PaperRippleElement} */ (
+          document.createElement('paper-ripple'));
+    },
+
+    _noinkChanged: function(noink) {
+      if (this.hasRipple()) {
+        this._ripple.noink = noink;
+      }
+    }
+  };
+</script>
+<script>
+  /**
+   * `Polymer.PaperInkyFocusBehavior` implements a ripple when the element has keyboard focus.
+   *
+   * @polymerBehavior Polymer.PaperInkyFocusBehavior
+   */
+  Polymer.PaperInkyFocusBehaviorImpl = {
+    observers: [
+      '_focusedChanged(receivedFocusFromKeyboard)'
+    ],
+
+    _focusedChanged: function(receivedFocusFromKeyboard) {
+      if (receivedFocusFromKeyboard) {
+        this.ensureRipple();
+      }
+      if (this.hasRipple()) {
+        this._ripple.holdDown = receivedFocusFromKeyboard;
+      }
+    },
+
+    _createRipple: function() {
+      var ripple = Polymer.PaperRippleBehavior._createRipple();
+      ripple.id = 'ink';
+      ripple.setAttribute('center', '');
+      ripple.classList.add('circle');
+      return ripple;
+    }
+  };
+
+  /** @polymerBehavior Polymer.PaperInkyFocusBehavior */
+  Polymer.PaperInkyFocusBehavior = [
+    Polymer.IronButtonState,
+    Polymer.IronControlState,
+    Polymer.PaperRippleBehavior,
+    Polymer.PaperInkyFocusBehaviorImpl
+  ];
+</script>
+<script>
+  /**
+   * Use `Polymer.PaperCheckedElementBehavior` to implement a custom element
+   * that has a `checked` property similar to `Polymer.IronCheckedElementBehavior`
+   * and is compatible with having a ripple effect.
+   * @polymerBehavior Polymer.PaperCheckedElementBehavior
+   */
+  Polymer.PaperCheckedElementBehaviorImpl = {
+    /**
+     * Synchronizes the element's checked state with its ripple effect.
+     */
+    _checkedChanged: function() {
+      Polymer.IronCheckedElementBehaviorImpl._checkedChanged.call(this);
+      if (this.hasRipple()) {
+        if (this.checked) {
+          this._ripple.setAttribute('checked', '');
+        } else {
+          this._ripple.removeAttribute('checked');
+        }
+      }
+    },
+
+    /**
+     * Synchronizes the element's `active` and `checked` state.
+     */
+    _buttonStateChanged: function() {
+      Polymer.PaperRippleBehavior._buttonStateChanged.call(this);
+      if (this.disabled) {
+        return;
+      }
+      if (this.isAttached) {
+        this.checked = this.active;
+      }
+    }
+  };
+
+  /** @polymerBehavior Polymer.PaperCheckedElementBehavior */
+  Polymer.PaperCheckedElementBehavior = [
+    Polymer.PaperInkyFocusBehavior,
+    Polymer.IronCheckedElementBehavior,
+    Polymer.PaperCheckedElementBehaviorImpl
+  ];
+</script>
+<!--
+Material design: [Checkbox](https://www.google.com/design/spec/components/selection-controls.html#selection-controls-checkbox)
+
+`paper-checkbox` is a button that can be either checked or unchecked.  User
+can tap the checkbox to check or uncheck it.  Usually you use checkboxes
+to allow user to select multiple options from a set.  If you have a single
+ON/OFF option, avoid using a single checkbox and use `paper-toggle-button`
+instead.
+
+Example:
+
+    <paper-checkbox>label</paper-checkbox>
+
+    <paper-checkbox checked> label</paper-checkbox>
+
+### Styling
+
+The following custom properties and mixins are available for styling:
+
+Custom property | Description | Default
+----------------|-------------|----------
+`--paper-checkbox-unchecked-background-color` | Checkbox background color when the input is not checked | `transparent`
+`--paper-checkbox-unchecked-color` | Checkbox border color when the input is not checked | `--primary-text-color`
+`--paper-checkbox-unchecked-ink-color` | Selected/focus ripple color when the input is not checked | `--primary-text-color`
+`--paper-checkbox-checked-color` | Checkbox color when the input is checked | `--primary-color`
+`--paper-checkbox-checked-ink-color` | Selected/focus ripple color when the input is checked | `--primary-color`
+`--paper-checkbox-checkmark-color` | Checkmark color | `white`
+`--paper-checkbox-label-color` | Label color | `--primary-text-color`
+`--paper-checkbox-label-checked-color` | Label color when the input is checked | `--paper-checkbox-label-color`
+`--paper-checkbox-label-spacing` | Spacing between the label and the checkbox | `8px`
+`--paper-checkbox-label` | Mixin applied to the label | `{}`
+`--paper-checkbox-label-checked` | Mixin applied to the label when the input is checked | `{}`
+`--paper-checkbox-error-color` | Checkbox color when invalid | `--error-color`
+`--paper-checkbox-size` | Size of the checkbox | `18px`
+`--paper-checkbox-ink-size` | Size of the ripple | `48px`
+`--paper-checkbox-margin` | Margin around the checkbox container | `initial`
+`--paper-checkbox-vertical-align` | Vertical alignment of the checkbox container | `middle`
+
+This element applies the mixin `--paper-font-common-base` but does not import `paper-styles/typography.html`.
+In order to apply the `Roboto` font to this element, make sure you've imported `paper-styles/typography.html`.
+
+@demo demo/index.html
+-->
+
+<dom-module id="paper-checkbox" assetpath="../node_modules/@bower_components/paper-checkbox/">
+  <template strip-whitespace="">
+    <style>
+      :host {
+        display: inline-block;
+        white-space: nowrap;
+        cursor: pointer;
+        --calculated-paper-checkbox-size: var(--paper-checkbox-size, 18px);
+        /* -1px is a sentinel for the default and is replaced in `attached`. */
+        --calculated-paper-checkbox-ink-size: var(--paper-checkbox-ink-size, -1px);
+        @apply(--paper-font-common-base);
+        line-height: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :host([hidden]) {
+        display: none !important;
+      }
+
+      :host(:focus) {
+        outline: none;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #checkboxContainer {
+        display: inline-block;
+        position: relative;
+        width: var(--calculated-paper-checkbox-size);
+        height: var(--calculated-paper-checkbox-size);
+        min-width: var(--calculated-paper-checkbox-size);
+        margin: var(--paper-checkbox-margin, initial);
+        vertical-align: var(--paper-checkbox-vertical-align, middle);
+        background-color: var(--paper-checkbox-unchecked-background-color, transparent);
+      }
+
+      #ink {
+        position: absolute;
+
+        /* Center the ripple in the checkbox by negative offsetting it by
+         * (inkWidth - rippleWidth) / 2 */
+        top: calc(0px - (var(--calculated-paper-checkbox-ink-size) - var(--calculated-paper-checkbox-size)) / 2);
+        left: calc(0px - (var(--calculated-paper-checkbox-ink-size) - var(--calculated-paper-checkbox-size)) / 2);
+        width: var(--calculated-paper-checkbox-ink-size);
+        height: var(--calculated-paper-checkbox-ink-size);
+        color: var(--paper-checkbox-unchecked-ink-color, var(--primary-text-color));
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      :host-context([dir="rtl"]) #ink {
+        right: calc(0px - (var(--calculated-paper-checkbox-ink-size) - var(--calculated-paper-checkbox-size)) / 2);
+        left: auto;
+      }
+
+      #ink[checked] {
+        color: var(--paper-checkbox-checked-ink-color, var(--primary-color));
+      }
+
+      #checkbox {
+        position: relative;
+        box-sizing: border-box;
+        height: 100%;
+        border: solid 2px;
+        border-color: var(--paper-checkbox-unchecked-color, var(--primary-text-color));
+        border-radius: 2px;
+        pointer-events: none;
+        -webkit-transition: background-color 140ms, border-color 140ms;
+        transition: background-color 140ms, border-color 140ms;
+      }
+
+      /* checkbox checked animations */
+      #checkbox.checked #checkmark {
+        -webkit-animation: checkmark-expand 140ms ease-out forwards;
+        animation: checkmark-expand 140ms ease-out forwards;
+      }
+
+      @-webkit-keyframes checkmark-expand {
+        0% {
+          -webkit-transform: scale(0, 0) rotate(45deg);
+        }
+        100% {
+          -webkit-transform: scale(1, 1) rotate(45deg);
+        }
+      }
+
+      @keyframes checkmark-expand {
+        0% {
+          transform: scale(0, 0) rotate(45deg);
+        }
+        100% {
+          transform: scale(1, 1) rotate(45deg);
+        }
+      }
+
+      #checkbox.checked {
+        background-color: var(--paper-checkbox-checked-color, var(--primary-color));
+        border-color: var(--paper-checkbox-checked-color, var(--primary-color));
+      }
+
+      #checkmark {
+        position: absolute;
+        width: 36%;
+        height: 70%;
+        border-style: solid;
+        border-top: none;
+        border-left: none;
+        border-right-width: calc(2/15 * var(--calculated-paper-checkbox-size));
+        border-bottom-width: calc(2/15 * var(--calculated-paper-checkbox-size));
+        border-color: var(--paper-checkbox-checkmark-color, white);
+        -webkit-transform-origin: 97% 86%;
+        transform-origin: 97% 86%;
+        box-sizing: content-box; /* protect against page-level box-sizing */
+      }
+
+      :host-context([dir="rtl"]) #checkmark {
+        -webkit-transform-origin: 50% 14%;
+        transform-origin: 50% 14%;
+      }
+
+      /* label */
+      #checkboxLabel {
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+        padding-left: var(--paper-checkbox-label-spacing, 8px);
+        white-space: normal;
+        line-height: normal;
+        color: var(--paper-checkbox-label-color, var(--primary-text-color));
+        @apply(--paper-checkbox-label);
+      }
+
+      :host([checked]) #checkboxLabel {
+        color: var(--paper-checkbox-label-checked-color, var(--paper-checkbox-label-color, var(--primary-text-color)));
+        @apply(--paper-checkbox-label-checked);
+      }
+
+      :host-context([dir="rtl"]) #checkboxLabel {
+        padding-right: var(--paper-checkbox-label-spacing, 8px);
+        padding-left: 0;
+      }
+
+      #checkboxLabel[hidden] {
+        display: none;
+      }
+
+      /* disabled state */
+
+      :host([disabled]) #checkbox {
+        opacity: 0.5;
+        border-color: var(--paper-checkbox-unchecked-color, var(--primary-text-color));
+      }
+
+      :host([disabled][checked]) #checkbox {
+        background-color: var(--paper-checkbox-unchecked-color, var(--primary-text-color));
+        opacity: 0.5;
+      }
+
+      :host([disabled]) #checkboxLabel  {
+        opacity: 0.65;
+      }
+
+      /* invalid state */
+      #checkbox.invalid:not(.checked) {
+        border-color: var(--paper-checkbox-error-color, var(--error-color));
+      }
+    </style>
+
+    <div id="checkboxContainer">
+      <div id="checkbox" class$="[[_computeCheckboxClass(checked, invalid)]]">
+        <div id="checkmark" class$="[[_computeCheckmarkClass(checked)]]"></div>
+      </div>
+    </div>
+
+    <div id="checkboxLabel"><content></content></div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'paper-checkbox',
+
+      behaviors: [
+        Polymer.PaperCheckedElementBehavior
+      ],
+
+      hostAttributes: {
+        role: 'checkbox',
+        'aria-checked': false,
+        tabindex: 0
+      },
+
+      properties: {
+        /**
+         * Fired when the checked state changes due to user interaction.
+         *
+         * @event change
+         */
+
+        /**
+         * Fired when the checked state changes.
+         *
+         * @event iron-change
+         */
+        ariaActiveAttribute: {
+          type: String,
+          value: 'aria-checked'
+        }
+      },
+
+      attached: function() {
+        var inkSize = this.getComputedStyleValue('--calculated-paper-checkbox-ink-size').trim();
+        // If unset, compute and set the default `--paper-checkbox-ink-size`.
+        if (inkSize === '-1px') {
+          var checkboxSize = parseFloat(this.getComputedStyleValue('--calculated-paper-checkbox-size').trim());
+          var defaultInkSize = Math.floor((8 / 3) * checkboxSize);
+
+          // The checkbox and ripple need to have the same parity so that their
+          // centers align.
+          if (defaultInkSize % 2 !== checkboxSize % 2) {
+            defaultInkSize++;
+          }
+
+          this.customStyle['--paper-checkbox-ink-size'] = defaultInkSize + 'px';
+          this.updateStyles();
+        }
+      },
+
+      _computeCheckboxClass: function(checked, invalid) {
+        var className = '';
+        if (checked) {
+          className += 'checked ';
+        }
+        if (invalid) {
+          className += 'invalid';
+        }
+        return className;
+      },
+
+      _computeCheckmarkClass: function(checked) {
+        return checked ? '' : 'hidden';
+      },
+
+      // create ripple inside the checkboxContainer
+      _createRipple: function() {
+        this._rippleContainer = this.$.checkboxContainer;
+        return Polymer.PaperInkyFocusBehaviorImpl._createRipple.call(this);
       }
 
     });
+  </script>
+</dom-module>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
 
-  })();
-</script>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
 <!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -9963,18 +11830,8 @@ A complete [guide](https://elements.polymer-project.org/guides/flex-layout) to `
 @demo demo/index.html
 -->
 
-<script>
-  // This is left only for backward compatibility with projects
-  // that incorrectly relied on unscoped global [hidden] rules;
-  // removing would be a breaking change, but new projects
-  // should never rely on this.
-  (function() {
-    var style = document.createElement('style');
-    style.textContent = '[hidden] { display: none !important; }';
-    document.head.appendChild(style);
-  })();
-</script>
-<style is="custom-style">
+<style>
+  /* IE 10 support for HTML5 hidden attr */
   [hidden] {
     display: none !important;
   }
@@ -10526,152 +12383,6 @@ Custom property | Description | Default
   </script>
 
 </dom-module>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
-<script>
-  /**
-   * Singleton IronMeta instance.
-   */
-  Polymer.IronValidatableBehaviorMeta = null;
-
-  /**
-   * `Use Polymer.IronValidatableBehavior` to implement an element that validates user input.
-   * Use the related `Polymer.IronValidatorBehavior` to add custom validation logic to an iron-input.
-   *
-   * By default, an `<iron-form>` element validates its fields when the user presses the submit button.
-   * To validate a form imperatively, call the form's `validate()` method, which in turn will
-   * call `validate()` on all its children. By using `Polymer.IronValidatableBehavior`, your
-   * custom element will get a public `validate()`, which
-   * will return the validity of the element, and a corresponding `invalid` attribute,
-   * which can be used for styling.
-   *
-   * To implement the custom validation logic of your element, you must override
-   * the protected `_getValidity()` method of this behaviour, rather than `validate()`.
-   * See [this](https://github.com/PolymerElements/iron-form/blob/master/demo/simple-element.html)
-   * for an example.
-   *
-   * ### Accessibility
-   *
-   * Changing the `invalid` property, either manually or by calling `validate()` will update the
-   * `aria-invalid` attribute.
-   *
-   * @demo demo/index.html
-   * @polymerBehavior
-   */
-  Polymer.IronValidatableBehavior = {
-
-    properties: {
-
-      /**
-       * Name of the validator to use.
-       */
-      validator: {
-        type: String
-      },
-
-      /**
-       * True if the last call to `validate` is invalid.
-       */
-      invalid: {
-        notify: true,
-        reflectToAttribute: true,
-        type: Boolean,
-        value: false
-      },
-
-      /**
-       * This property is deprecated and should not be used. Use the global
-       * validator meta singleton, `Polymer.IronValidatableBehaviorMeta` instead.
-       */
-      _validatorMeta: {
-        type: Object
-      },
-
-      /**
-       * Namespace for this validator. This property is deprecated and should
-       * not be used. For all intents and purposes, please consider it a
-       * read-only, config-time property.
-       */
-      validatorType: {
-        type: String,
-        value: 'validator'
-      },
-
-      _validator: {
-        type: Object,
-        computed: '__computeValidator(validator)'
-      }
-    },
-
-    observers: [
-      '_invalidChanged(invalid)'
-    ],
-
-    registered: function() {
-      Polymer.IronValidatableBehaviorMeta = new Polymer.IronMeta({type: 'validator'});
-    },
-
-    _invalidChanged: function() {
-      if (this.invalid) {
-        this.setAttribute('aria-invalid', 'true');
-      } else {
-        this.removeAttribute('aria-invalid');
-      }
-    },
-
-    /**
-     * @return {boolean} True if the validator `validator` exists.
-     */
-    hasValidator: function() {
-      return this._validator != null;
-    },
-
-    /**
-     * Returns true if the `value` is valid, and updates `invalid`. If you want
-     * your element to have custom validation logic, do not override this method;
-     * override `_getValidity(value)` instead.
-
-     * @param {Object} value The value to be validated. By default, it is passed
-     * to the validator's `validate()` function, if a validator is set.
-     * @return {boolean} True if `value` is valid.
-     */
-    validate: function(value) {
-      this.invalid = !this._getValidity(value);
-      return !this.invalid;
-    },
-
-    /**
-     * Returns true if `value` is valid.  By default, it is passed
-     * to the validator's `validate()` function, if a validator is set. You
-     * should override this method if you want to implement custom validity
-     * logic for your element.
-     *
-     * @param {Object} value The value to be validated.
-     * @return {boolean} True if `value` is valid.
-     */
-
-    _getValidity: function(value) {
-      if (this.hasValidator()) {
-        return this._validator.validate(value);
-      }
-      return true;
-    },
-
-    __computeValidator: function() {
-      return Polymer.IronValidatableBehaviorMeta &&
-          Polymer.IronValidatableBehaviorMeta.byKey(this.validator);
-    }
-  };
-
-</script>
 <!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -12002,406 +13713,6 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
-<style is="custom-style">
-
-  :root {
-
-    /* Material Design color palette for Google products */
-
-    --google-red-100: #f4c7c3;
-    --google-red-300: #e67c73;
-    --google-red-500: #db4437;
-    --google-red-700: #c53929;
-
-    --google-blue-100: #c6dafc;
-    --google-blue-300: #7baaf7;
-    --google-blue-500: #4285f4;
-    --google-blue-700: #3367d6;
-
-    --google-green-100: #b7e1cd;
-    --google-green-300: #57bb8a;
-    --google-green-500: #0f9d58;
-    --google-green-700: #0b8043;
-
-    --google-yellow-100: #fce8b2;
-    --google-yellow-300: #f7cb4d;
-    --google-yellow-500: #f4b400;
-    --google-yellow-700: #f09300;
-
-    --google-grey-100: #f5f5f5;
-    --google-grey-300: #e0e0e0;
-    --google-grey-500: #9e9e9e;
-    --google-grey-700: #616161;
-    
-    /* Material Design color palette from online spec document */
-
-    --paper-red-50: #ffebee;
-    --paper-red-100: #ffcdd2;
-    --paper-red-200: #ef9a9a;
-    --paper-red-300: #e57373;
-    --paper-red-400: #ef5350;
-    --paper-red-500: #f44336;
-    --paper-red-600: #e53935;
-    --paper-red-700: #d32f2f;
-    --paper-red-800: #c62828;
-    --paper-red-900: #b71c1c;
-    --paper-red-a100: #ff8a80;
-    --paper-red-a200: #ff5252;
-    --paper-red-a400: #ff1744;
-    --paper-red-a700: #d50000;
- 
-    --paper-pink-50: #fce4ec;
-    --paper-pink-100: #f8bbd0;
-    --paper-pink-200: #f48fb1;
-    --paper-pink-300: #f06292;
-    --paper-pink-400: #ec407a;
-    --paper-pink-500: #e91e63;
-    --paper-pink-600: #d81b60;
-    --paper-pink-700: #c2185b;
-    --paper-pink-800: #ad1457;
-    --paper-pink-900: #880e4f;
-    --paper-pink-a100: #ff80ab;
-    --paper-pink-a200: #ff4081;
-    --paper-pink-a400: #f50057;
-    --paper-pink-a700: #c51162;
- 
-    --paper-purple-50: #f3e5f5;
-    --paper-purple-100: #e1bee7;
-    --paper-purple-200: #ce93d8;
-    --paper-purple-300: #ba68c8;
-    --paper-purple-400: #ab47bc;
-    --paper-purple-500: #9c27b0;
-    --paper-purple-600: #8e24aa;
-    --paper-purple-700: #7b1fa2;
-    --paper-purple-800: #6a1b9a;
-    --paper-purple-900: #4a148c;
-    --paper-purple-a100: #ea80fc;
-    --paper-purple-a200: #e040fb;
-    --paper-purple-a400: #d500f9;
-    --paper-purple-a700: #aa00ff;
- 
-    --paper-deep-purple-50: #ede7f6;
-    --paper-deep-purple-100: #d1c4e9;
-    --paper-deep-purple-200: #b39ddb;
-    --paper-deep-purple-300: #9575cd;
-    --paper-deep-purple-400: #7e57c2;
-    --paper-deep-purple-500: #673ab7;
-    --paper-deep-purple-600: #5e35b1;
-    --paper-deep-purple-700: #512da8;
-    --paper-deep-purple-800: #4527a0;
-    --paper-deep-purple-900: #311b92;
-    --paper-deep-purple-a100: #b388ff;
-    --paper-deep-purple-a200: #7c4dff;
-    --paper-deep-purple-a400: #651fff;
-    --paper-deep-purple-a700: #6200ea;
- 
-    --paper-indigo-50: #e8eaf6;
-    --paper-indigo-100: #c5cae9;
-    --paper-indigo-200: #9fa8da;
-    --paper-indigo-300: #7986cb;
-    --paper-indigo-400: #5c6bc0;
-    --paper-indigo-500: #3f51b5;
-    --paper-indigo-600: #3949ab;
-    --paper-indigo-700: #303f9f;
-    --paper-indigo-800: #283593;
-    --paper-indigo-900: #1a237e;
-    --paper-indigo-a100: #8c9eff;
-    --paper-indigo-a200: #536dfe;
-    --paper-indigo-a400: #3d5afe;
-    --paper-indigo-a700: #304ffe;
- 
-    --paper-blue-50: #e3f2fd;
-    --paper-blue-100: #bbdefb;
-    --paper-blue-200: #90caf9;
-    --paper-blue-300: #64b5f6;
-    --paper-blue-400: #42a5f5;
-    --paper-blue-500: #2196f3;
-    --paper-blue-600: #1e88e5;
-    --paper-blue-700: #1976d2;
-    --paper-blue-800: #1565c0;
-    --paper-blue-900: #0d47a1;
-    --paper-blue-a100: #82b1ff;
-    --paper-blue-a200: #448aff;
-    --paper-blue-a400: #2979ff;
-    --paper-blue-a700: #2962ff;
- 
-    --paper-light-blue-50: #e1f5fe;
-    --paper-light-blue-100: #b3e5fc;
-    --paper-light-blue-200: #81d4fa;
-    --paper-light-blue-300: #4fc3f7;
-    --paper-light-blue-400: #29b6f6;
-    --paper-light-blue-500: #03a9f4;
-    --paper-light-blue-600: #039be5;
-    --paper-light-blue-700: #0288d1;
-    --paper-light-blue-800: #0277bd;
-    --paper-light-blue-900: #01579b;
-    --paper-light-blue-a100: #80d8ff;
-    --paper-light-blue-a200: #40c4ff;
-    --paper-light-blue-a400: #00b0ff;
-    --paper-light-blue-a700: #0091ea;
- 
-    --paper-cyan-50: #e0f7fa;
-    --paper-cyan-100: #b2ebf2;
-    --paper-cyan-200: #80deea;
-    --paper-cyan-300: #4dd0e1;
-    --paper-cyan-400: #26c6da;
-    --paper-cyan-500: #00bcd4;
-    --paper-cyan-600: #00acc1;
-    --paper-cyan-700: #0097a7;
-    --paper-cyan-800: #00838f;
-    --paper-cyan-900: #006064;
-    --paper-cyan-a100: #84ffff;
-    --paper-cyan-a200: #18ffff;
-    --paper-cyan-a400: #00e5ff;
-    --paper-cyan-a700: #00b8d4;
- 
-    --paper-teal-50: #e0f2f1;
-    --paper-teal-100: #b2dfdb;
-    --paper-teal-200: #80cbc4;
-    --paper-teal-300: #4db6ac;
-    --paper-teal-400: #26a69a;
-    --paper-teal-500: #009688;
-    --paper-teal-600: #00897b;
-    --paper-teal-700: #00796b;
-    --paper-teal-800: #00695c;
-    --paper-teal-900: #004d40;
-    --paper-teal-a100: #a7ffeb;
-    --paper-teal-a200: #64ffda;
-    --paper-teal-a400: #1de9b6;
-    --paper-teal-a700: #00bfa5;
- 
-    --paper-green-50: #e8f5e9;
-    --paper-green-100: #c8e6c9;
-    --paper-green-200: #a5d6a7;
-    --paper-green-300: #81c784;
-    --paper-green-400: #66bb6a;
-    --paper-green-500: #4caf50;
-    --paper-green-600: #43a047;
-    --paper-green-700: #388e3c;
-    --paper-green-800: #2e7d32;
-    --paper-green-900: #1b5e20;
-    --paper-green-a100: #b9f6ca;
-    --paper-green-a200: #69f0ae;
-    --paper-green-a400: #00e676;
-    --paper-green-a700: #00c853;
- 
-    --paper-light-green-50: #f1f8e9;
-    --paper-light-green-100: #dcedc8;
-    --paper-light-green-200: #c5e1a5;
-    --paper-light-green-300: #aed581;
-    --paper-light-green-400: #9ccc65;
-    --paper-light-green-500: #8bc34a;
-    --paper-light-green-600: #7cb342;
-    --paper-light-green-700: #689f38;
-    --paper-light-green-800: #558b2f;
-    --paper-light-green-900: #33691e;
-    --paper-light-green-a100: #ccff90;
-    --paper-light-green-a200: #b2ff59;
-    --paper-light-green-a400: #76ff03;
-    --paper-light-green-a700: #64dd17;
- 
-    --paper-lime-50: #f9fbe7;
-    --paper-lime-100: #f0f4c3;
-    --paper-lime-200: #e6ee9c;
-    --paper-lime-300: #dce775;
-    --paper-lime-400: #d4e157;
-    --paper-lime-500: #cddc39;
-    --paper-lime-600: #c0ca33;
-    --paper-lime-700: #afb42b;
-    --paper-lime-800: #9e9d24;
-    --paper-lime-900: #827717;
-    --paper-lime-a100: #f4ff81;
-    --paper-lime-a200: #eeff41;
-    --paper-lime-a400: #c6ff00;
-    --paper-lime-a700: #aeea00;
- 
-    --paper-yellow-50: #fffde7;
-    --paper-yellow-100: #fff9c4;
-    --paper-yellow-200: #fff59d;
-    --paper-yellow-300: #fff176;
-    --paper-yellow-400: #ffee58;
-    --paper-yellow-500: #ffeb3b;
-    --paper-yellow-600: #fdd835;
-    --paper-yellow-700: #fbc02d;
-    --paper-yellow-800: #f9a825;
-    --paper-yellow-900: #f57f17;
-    --paper-yellow-a100: #ffff8d;
-    --paper-yellow-a200: #ffff00;
-    --paper-yellow-a400: #ffea00;
-    --paper-yellow-a700: #ffd600;
- 
-    --paper-amber-50: #fff8e1;
-    --paper-amber-100: #ffecb3;
-    --paper-amber-200: #ffe082;
-    --paper-amber-300: #ffd54f;
-    --paper-amber-400: #ffca28;
-    --paper-amber-500: #ffc107;
-    --paper-amber-600: #ffb300;
-    --paper-amber-700: #ffa000;
-    --paper-amber-800: #ff8f00;
-    --paper-amber-900: #ff6f00;
-    --paper-amber-a100: #ffe57f;
-    --paper-amber-a200: #ffd740;
-    --paper-amber-a400: #ffc400;
-    --paper-amber-a700: #ffab00;
- 
-    --paper-orange-50: #fff3e0;
-    --paper-orange-100: #ffe0b2;
-    --paper-orange-200: #ffcc80;
-    --paper-orange-300: #ffb74d;
-    --paper-orange-400: #ffa726;
-    --paper-orange-500: #ff9800;
-    --paper-orange-600: #fb8c00;
-    --paper-orange-700: #f57c00;
-    --paper-orange-800: #ef6c00;
-    --paper-orange-900: #e65100;
-    --paper-orange-a100: #ffd180;
-    --paper-orange-a200: #ffab40;
-    --paper-orange-a400: #ff9100;
-    --paper-orange-a700: #ff6500;
- 
-    --paper-deep-orange-50: #fbe9e7;
-    --paper-deep-orange-100: #ffccbc;
-    --paper-deep-orange-200: #ffab91;
-    --paper-deep-orange-300: #ff8a65;
-    --paper-deep-orange-400: #ff7043;
-    --paper-deep-orange-500: #ff5722;
-    --paper-deep-orange-600: #f4511e;
-    --paper-deep-orange-700: #e64a19;
-    --paper-deep-orange-800: #d84315;
-    --paper-deep-orange-900: #bf360c;
-    --paper-deep-orange-a100: #ff9e80;
-    --paper-deep-orange-a200: #ff6e40;
-    --paper-deep-orange-a400: #ff3d00;
-    --paper-deep-orange-a700: #dd2c00;
- 
-    --paper-brown-50: #efebe9;
-    --paper-brown-100: #d7ccc8;
-    --paper-brown-200: #bcaaa4;
-    --paper-brown-300: #a1887f;
-    --paper-brown-400: #8d6e63;
-    --paper-brown-500: #795548;
-    --paper-brown-600: #6d4c41;
-    --paper-brown-700: #5d4037;
-    --paper-brown-800: #4e342e;
-    --paper-brown-900: #3e2723;
- 
-    --paper-grey-50: #fafafa;
-    --paper-grey-100: #f5f5f5;
-    --paper-grey-200: #eeeeee;
-    --paper-grey-300: #e0e0e0;
-    --paper-grey-400: #bdbdbd;
-    --paper-grey-500: #9e9e9e;
-    --paper-grey-600: #757575;
-    --paper-grey-700: #616161;
-    --paper-grey-800: #424242;
-    --paper-grey-900: #212121;
- 
-    --paper-blue-grey-50: #eceff1;
-    --paper-blue-grey-100: #cfd8dc;
-    --paper-blue-grey-200: #b0bec5;
-    --paper-blue-grey-300: #90a4ae;
-    --paper-blue-grey-400: #78909c;
-    --paper-blue-grey-500: #607d8b;
-    --paper-blue-grey-600: #546e7a;
-    --paper-blue-grey-700: #455a64;
-    --paper-blue-grey-800: #37474f;
-    --paper-blue-grey-900: #263238;
-
-    /* opacity for dark text on a light background */
-    --dark-divider-opacity: 0.12;
-    --dark-disabled-opacity: 0.38; /* or hint text or icon */
-    --dark-secondary-opacity: 0.54;
-    --dark-primary-opacity: 0.87;
-
-    /* opacity for light text on a dark background */
-    --light-divider-opacity: 0.12;
-    --light-disabled-opacity: 0.3; /* or hint text or icon */
-    --light-secondary-opacity: 0.7;
-    --light-primary-opacity: 1.0;
-
-  }
-
-</style>
-<!-- Taken from https://www.google.com/design/spec/style/color.html#color-ui-color-application -->
-
-<style is="custom-style">
-
-  :root {
-    /*
-     * You can use these generic variables in your elements for easy theming.
-     * For example, if all your elements use `--primary-text-color` as its main
-     * color, then switching from a light to a dark theme is just a matter of
-     * changing the value of `--primary-text-color` in your application.
-     */
-    --primary-text-color: var(--light-theme-text-color);
-    --primary-background-color: var(--light-theme-background-color);
-    --secondary-text-color: var(--light-theme-secondary-color);
-    --disabled-text-color: var(--light-theme-disabled-color);
-    --divider-color: var(--light-theme-divider-color);
-    --error-color: var(--paper-deep-orange-a700);
-
-    /*
-     * Primary and accent colors. Also see color.html for more colors.
-     */
-    --primary-color: var(--paper-indigo-500);
-    --light-primary-color: var(--paper-indigo-100);
-    --dark-primary-color: var(--paper-indigo-700);
-
-    --accent-color: var(--paper-pink-a200);
-    --light-accent-color: var(--paper-pink-a100);
-    --dark-accent-color: var(--paper-pink-a400);
-
-
-    /*
-     * Material Design Light background theme
-     */
-    --light-theme-background-color: #ffffff;
-    --light-theme-base-color: #000000;
-    --light-theme-text-color: var(--paper-grey-900);
-    --light-theme-secondary-color: #737373;  /* for secondary text and icons */
-    --light-theme-disabled-color: #9b9b9b;  /* disabled/hint text */
-    --light-theme-divider-color: #dbdbdb;
-
-    /*
-     * Material Design Dark background theme
-     */
-    --dark-theme-background-color: var(--paper-grey-900);
-    --dark-theme-base-color: #ffffff;
-    --dark-theme-text-color: #ffffff;
-    --dark-theme-secondary-color: #bcbcbc;  /* for secondary text and icons */
-    --dark-theme-disabled-color: #646464;  /* disabled/hint text */
-    --dark-theme-divider-color: #3c3c3c;
-
-    /*
-     * Deprecated values because of their confusing names.
-     */
-    --text-primary-color: var(--dark-theme-text-color);
-    --default-primary-color: var(--primary-color);
-
-  }
-
-</style>
 <!--
 `<paper-input-container>` is a container for a `<label>`, an `<input is="iron-input">` or
 `<textarea>` and optional add-on elements such as an error message or character
@@ -17306,766 +18617,6 @@ Custom property | Description | Default
 </dom-module>
 <!--
 @license
-Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
-<!--
-Material design: [Surface reaction](https://www.google.com/design/spec/animation/responsive-interaction.html#responsive-interaction-surface-reaction)
-
-`paper-ripple` provides a visual effect that other paper elements can
-use to simulate a rippling effect emanating from the point of contact.  The
-effect can be visualized as a concentric circle with motion.
-
-Example:
-
-    <div style="position:relative">
-      <paper-ripple></paper-ripple>
-    </div>
-
-Note, it's important that the parent container of the ripple be relative position, otherwise
-the ripple will emanate outside of the desired container.
-
-`paper-ripple` listens to "mousedown" and "mouseup" events so it would display ripple
-effect when touches on it.  You can also defeat the default behavior and
-manually route the down and up actions to the ripple element.  Note that it is
-important if you call `downAction()` you will have to make sure to call
-`upAction()` so that `paper-ripple` would end the animation loop.
-
-Example:
-
-    <paper-ripple id="ripple" style="pointer-events: none;"></paper-ripple>
-    ...
-    downAction: function(e) {
-      this.$.ripple.downAction({detail: {x: e.x, y: e.y}});
-    },
-    upAction: function(e) {
-      this.$.ripple.upAction();
-    }
-
-Styling ripple effect:
-
-  Use CSS color property to style the ripple:
-
-    paper-ripple {
-      color: #4285f4;
-    }
-
-  Note that CSS color property is inherited so it is not required to set it on
-  the `paper-ripple` element directly.
-
-By default, the ripple is centered on the point of contact.  Apply the `recenters`
-attribute to have the ripple grow toward the center of its container.
-
-    <paper-ripple recenters></paper-ripple>
-
-You can also  center the ripple inside its container from the start.
-
-    <paper-ripple center></paper-ripple>
-
-Apply `circle` class to make the rippling effect within a circle.
-
-    <paper-ripple class="circle"></paper-ripple>
-
-@group Paper Elements
-@element paper-ripple
-@hero hero.svg
-@demo demo/index.html
--->
-
-<dom-module id="paper-ripple" assetpath="../node_modules/@bower_components/paper-ripple/">
-
-  <template>
-    <style>
-      :host {
-        display: block;
-        position: absolute;
-        border-radius: inherit;
-        overflow: hidden;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-
-        /* See PolymerElements/paper-behaviors/issues/34. On non-Chrome browsers,
-         * creating a node (with a position:absolute) in the middle of an event
-         * handler "interrupts" that event handler (which happens when the
-         * ripple is created on demand) */
-        pointer-events: none;
-      }
-
-      :host([animating]) {
-        /* This resolves a rendering issue in Chrome (as of 40) where the
-           ripple is not properly clipped by its parent (which may have
-           rounded corners). See: http://jsbin.com/temexa/4
-
-           Note: We only apply this style conditionally. Otherwise, the browser
-           will create a new compositing layer for every ripple element on the
-           page, and that would be bad. */
-        -webkit-transform: translate(0, 0);
-        transform: translate3d(0, 0, 0);
-      }
-
-      #background,
-      #waves,
-      .wave-container,
-      .wave {
-        pointer-events: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-
-      #background,
-      .wave {
-        opacity: 0;
-      }
-
-      #waves,
-      .wave {
-        overflow: hidden;
-      }
-
-      .wave-container,
-      .wave {
-        border-radius: 50%;
-      }
-
-      :host(.circle) #background,
-      :host(.circle) #waves {
-        border-radius: 50%;
-      }
-
-      :host(.circle) .wave-container {
-        overflow: hidden;
-      }
-    </style>
-
-    <div id="background"></div>
-    <div id="waves"></div>
-  </template>
-</dom-module>
-<script>
-  (function() {
-    var Utility = {
-      distance: function(x1, y1, x2, y2) {
-        var xDelta = (x1 - x2);
-        var yDelta = (y1 - y2);
-
-        return Math.sqrt(xDelta * xDelta + yDelta * yDelta);
-      },
-
-      now: window.performance && window.performance.now ?
-          window.performance.now.bind(window.performance) : Date.now
-    };
-
-    /**
-     * @param {HTMLElement} element
-     * @constructor
-     */
-    function ElementMetrics(element) {
-      this.element = element;
-      this.width = this.boundingRect.width;
-      this.height = this.boundingRect.height;
-
-      this.size = Math.max(this.width, this.height);
-    }
-
-    ElementMetrics.prototype = {
-      get boundingRect () {
-        return this.element.getBoundingClientRect();
-      },
-
-      furthestCornerDistanceFrom: function(x, y) {
-        var topLeft = Utility.distance(x, y, 0, 0);
-        var topRight = Utility.distance(x, y, this.width, 0);
-        var bottomLeft = Utility.distance(x, y, 0, this.height);
-        var bottomRight = Utility.distance(x, y, this.width, this.height);
-
-        return Math.max(topLeft, topRight, bottomLeft, bottomRight);
-      }
-    };
-
-    /**
-     * @param {HTMLElement} element
-     * @constructor
-     */
-    function Ripple(element) {
-      this.element = element;
-      this.color = window.getComputedStyle(element).color;
-
-      this.wave = document.createElement('div');
-      this.waveContainer = document.createElement('div');
-      this.wave.style.backgroundColor = this.color;
-      this.wave.classList.add('wave');
-      this.waveContainer.classList.add('wave-container');
-      Polymer.dom(this.waveContainer).appendChild(this.wave);
-
-      this.resetInteractionState();
-    }
-
-    Ripple.MAX_RADIUS = 300;
-
-    Ripple.prototype = {
-      get recenters() {
-        return this.element.recenters;
-      },
-
-      get center() {
-        return this.element.center;
-      },
-
-      get mouseDownElapsed() {
-        var elapsed;
-
-        if (!this.mouseDownStart) {
-          return 0;
-        }
-
-        elapsed = Utility.now() - this.mouseDownStart;
-
-        if (this.mouseUpStart) {
-          elapsed -= this.mouseUpElapsed;
-        }
-
-        return elapsed;
-      },
-
-      get mouseUpElapsed() {
-        return this.mouseUpStart ?
-          Utility.now () - this.mouseUpStart : 0;
-      },
-
-      get mouseDownElapsedSeconds() {
-        return this.mouseDownElapsed / 1000;
-      },
-
-      get mouseUpElapsedSeconds() {
-        return this.mouseUpElapsed / 1000;
-      },
-
-      get mouseInteractionSeconds() {
-        return this.mouseDownElapsedSeconds + this.mouseUpElapsedSeconds;
-      },
-
-      get initialOpacity() {
-        return this.element.initialOpacity;
-      },
-
-      get opacityDecayVelocity() {
-        return this.element.opacityDecayVelocity;
-      },
-
-      get radius() {
-        var width2 = this.containerMetrics.width * this.containerMetrics.width;
-        var height2 = this.containerMetrics.height * this.containerMetrics.height;
-        var waveRadius = Math.min(
-          Math.sqrt(width2 + height2),
-          Ripple.MAX_RADIUS
-        ) * 1.1 + 5;
-
-        var duration = 1.1 - 0.2 * (waveRadius / Ripple.MAX_RADIUS);
-        var timeNow = this.mouseInteractionSeconds / duration;
-        var size = waveRadius * (1 - Math.pow(80, -timeNow));
-
-        return Math.abs(size);
-      },
-
-      get opacity() {
-        if (!this.mouseUpStart) {
-          return this.initialOpacity;
-        }
-
-        return Math.max(
-          0,
-          this.initialOpacity - this.mouseUpElapsedSeconds * this.opacityDecayVelocity
-        );
-      },
-
-      get outerOpacity() {
-        // Linear increase in background opacity, capped at the opacity
-        // of the wavefront (waveOpacity).
-        var outerOpacity = this.mouseUpElapsedSeconds * 0.3;
-        var waveOpacity = this.opacity;
-
-        return Math.max(
-          0,
-          Math.min(outerOpacity, waveOpacity)
-        );
-      },
-
-      get isOpacityFullyDecayed() {
-        return this.opacity < 0.01 &&
-          this.radius >= Math.min(this.maxRadius, Ripple.MAX_RADIUS);
-      },
-
-      get isRestingAtMaxRadius() {
-        return this.opacity >= this.initialOpacity &&
-          this.radius >= Math.min(this.maxRadius, Ripple.MAX_RADIUS);
-      },
-
-      get isAnimationComplete() {
-        return this.mouseUpStart ?
-          this.isOpacityFullyDecayed : this.isRestingAtMaxRadius;
-      },
-
-      get translationFraction() {
-        return Math.min(
-          1,
-          this.radius / this.containerMetrics.size * 2 / Math.sqrt(2)
-        );
-      },
-
-      get xNow() {
-        if (this.xEnd) {
-          return this.xStart + this.translationFraction * (this.xEnd - this.xStart);
-        }
-
-        return this.xStart;
-      },
-
-      get yNow() {
-        if (this.yEnd) {
-          return this.yStart + this.translationFraction * (this.yEnd - this.yStart);
-        }
-
-        return this.yStart;
-      },
-
-      get isMouseDown() {
-        return this.mouseDownStart && !this.mouseUpStart;
-      },
-
-      resetInteractionState: function() {
-        this.maxRadius = 0;
-        this.mouseDownStart = 0;
-        this.mouseUpStart = 0;
-
-        this.xStart = 0;
-        this.yStart = 0;
-        this.xEnd = 0;
-        this.yEnd = 0;
-        this.slideDistance = 0;
-
-        this.containerMetrics = new ElementMetrics(this.element);
-      },
-
-      draw: function() {
-        var scale;
-        var translateString;
-        var dx;
-        var dy;
-
-        this.wave.style.opacity = this.opacity;
-
-        scale = this.radius / (this.containerMetrics.size / 2);
-        dx = this.xNow - (this.containerMetrics.width / 2);
-        dy = this.yNow - (this.containerMetrics.height / 2);
-
-
-        // 2d transform for safari because of border-radius and overflow:hidden clipping bug.
-        // https://bugs.webkit.org/show_bug.cgi?id=98538
-        this.waveContainer.style.webkitTransform = 'translate(' + dx + 'px, ' + dy + 'px)';
-        this.waveContainer.style.transform = 'translate3d(' + dx + 'px, ' + dy + 'px, 0)';
-        this.wave.style.webkitTransform = 'scale(' + scale + ',' + scale + ')';
-        this.wave.style.transform = 'scale3d(' + scale + ',' + scale + ',1)';
-      },
-
-      /** @param {Event=} event */
-      downAction: function(event) {
-        var xCenter = this.containerMetrics.width / 2;
-        var yCenter = this.containerMetrics.height / 2;
-
-        this.resetInteractionState();
-        this.mouseDownStart = Utility.now();
-
-        if (this.center) {
-          this.xStart = xCenter;
-          this.yStart = yCenter;
-          this.slideDistance = Utility.distance(
-            this.xStart, this.yStart, this.xEnd, this.yEnd
-          );
-        } else {
-          this.xStart = event ?
-              event.detail.x - this.containerMetrics.boundingRect.left :
-              this.containerMetrics.width / 2;
-          this.yStart = event ?
-              event.detail.y - this.containerMetrics.boundingRect.top :
-              this.containerMetrics.height / 2;
-        }
-
-        if (this.recenters) {
-          this.xEnd = xCenter;
-          this.yEnd = yCenter;
-          this.slideDistance = Utility.distance(
-            this.xStart, this.yStart, this.xEnd, this.yEnd
-          );
-        }
-
-        this.maxRadius = this.containerMetrics.furthestCornerDistanceFrom(
-          this.xStart,
-          this.yStart
-        );
-
-        this.waveContainer.style.top =
-          (this.containerMetrics.height - this.containerMetrics.size) / 2 + 'px';
-        this.waveContainer.style.left =
-          (this.containerMetrics.width - this.containerMetrics.size) / 2 + 'px';
-
-        this.waveContainer.style.width = this.containerMetrics.size + 'px';
-        this.waveContainer.style.height = this.containerMetrics.size + 'px';
-      },
-
-      /** @param {Event=} event */
-      upAction: function(event) {
-        if (!this.isMouseDown) {
-          return;
-        }
-
-        this.mouseUpStart = Utility.now();
-      },
-
-      remove: function() {
-        Polymer.dom(this.waveContainer.parentNode).removeChild(
-          this.waveContainer
-        );
-      }
-    };
-
-    Polymer({
-      is: 'paper-ripple',
-
-      behaviors: [
-        Polymer.IronA11yKeysBehavior
-      ],
-
-      properties: {
-        /**
-         * The initial opacity set on the wave.
-         *
-         * @attribute initialOpacity
-         * @type number
-         * @default 0.25
-         */
-        initialOpacity: {
-          type: Number,
-          value: 0.25
-        },
-
-        /**
-         * How fast (opacity per second) the wave fades out.
-         *
-         * @attribute opacityDecayVelocity
-         * @type number
-         * @default 0.8
-         */
-        opacityDecayVelocity: {
-          type: Number,
-          value: 0.8
-        },
-
-        /**
-         * If true, ripples will exhibit a gravitational pull towards
-         * the center of their container as they fade away.
-         *
-         * @attribute recenters
-         * @type boolean
-         * @default false
-         */
-        recenters: {
-          type: Boolean,
-          value: false
-        },
-
-        /**
-         * If true, ripples will center inside its container
-         *
-         * @attribute recenters
-         * @type boolean
-         * @default false
-         */
-        center: {
-          type: Boolean,
-          value: false
-        },
-
-        /**
-         * A list of the visual ripples.
-         *
-         * @attribute ripples
-         * @type Array
-         * @default []
-         */
-        ripples: {
-          type: Array,
-          value: function() {
-            return [];
-          }
-        },
-
-        /**
-         * True when there are visible ripples animating within the
-         * element.
-         */
-        animating: {
-          type: Boolean,
-          readOnly: true,
-          reflectToAttribute: true,
-          value: false
-        },
-
-        /**
-         * If true, the ripple will remain in the "down" state until `holdDown`
-         * is set to false again.
-         */
-        holdDown: {
-          type: Boolean,
-          value: false,
-          observer: '_holdDownChanged'
-        },
-
-        /**
-         * If true, the ripple will not generate a ripple effect
-         * via pointer interaction.
-         * Calling ripple's imperative api like `simulatedRipple` will
-         * still generate the ripple effect.
-         */
-        noink: {
-          type: Boolean,
-          value: false
-        },
-
-        _animating: {
-          type: Boolean
-        },
-
-        _boundAnimate: {
-          type: Function,
-          value: function() {
-            return this.animate.bind(this);
-          }
-        }
-      },
-
-      get target () {
-        return this.keyEventTarget;
-      },
-
-      keyBindings: {
-        'enter:keydown': '_onEnterKeydown',
-        'space:keydown': '_onSpaceKeydown',
-        'space:keyup': '_onSpaceKeyup'
-      },
-
-      attached: function() {
-        // Set up a11yKeysBehavior to listen to key events on the target,
-        // so that space and enter activate the ripple even if the target doesn't
-        // handle key events. The key handlers deal with `noink` themselves.
-        if (this.parentNode.nodeType == 11) { // DOCUMENT_FRAGMENT_NODE
-          this.keyEventTarget = Polymer.dom(this).getOwnerRoot().host;
-        } else {
-          this.keyEventTarget = this.parentNode;
-        }
-        var keyEventTarget = /** @type {!EventTarget} */ (this.keyEventTarget);
-        this.listen(keyEventTarget, 'up', 'uiUpAction');
-        this.listen(keyEventTarget, 'down', 'uiDownAction');
-      },
-
-      detached: function() {
-        this.unlisten(this.keyEventTarget, 'up', 'uiUpAction');
-        this.unlisten(this.keyEventTarget, 'down', 'uiDownAction');
-        this.keyEventTarget = null;
-      },
-
-      get shouldKeepAnimating () {
-        for (var index = 0; index < this.ripples.length; ++index) {
-          if (!this.ripples[index].isAnimationComplete) {
-            return true;
-          }
-        }
-
-        return false;
-      },
-
-      simulatedRipple: function() {
-        this.downAction(null);
-
-        // Please see polymer/polymer#1305
-        this.async(function() {
-          this.upAction();
-        }, 1);
-      },
-
-      /**
-       * Provokes a ripple down effect via a UI event,
-       * respecting the `noink` property.
-       * @param {Event=} event
-       */
-      uiDownAction: function(event) {
-        if (!this.noink) {
-          this.downAction(event);
-        }
-      },
-
-      /**
-       * Provokes a ripple down effect via a UI event,
-       * *not* respecting the `noink` property.
-       * @param {Event=} event
-       */
-      downAction: function(event) {
-        if (this.holdDown && this.ripples.length > 0) {
-          return;
-        }
-
-        var ripple = this.addRipple();
-
-        ripple.downAction(event);
-
-        if (!this._animating) {
-          this._animating = true;
-          this.animate();
-        }
-      },
-
-      /**
-       * Provokes a ripple up effect via a UI event,
-       * respecting the `noink` property.
-       * @param {Event=} event
-       */
-      uiUpAction: function(event) {
-        if (!this.noink) {
-          this.upAction(event);
-        }
-      },
-
-      /**
-       * Provokes a ripple up effect via a UI event,
-       * *not* respecting the `noink` property.
-       * @param {Event=} event
-       */
-      upAction: function(event) {
-        if (this.holdDown) {
-          return;
-        }
-
-        this.ripples.forEach(function(ripple) {
-          ripple.upAction(event);
-        });
-
-        this._animating = true;
-        this.animate();
-      },
-
-      onAnimationComplete: function() {
-        this._animating = false;
-        this.$.background.style.backgroundColor = null;
-        this.fire('transitionend');
-      },
-
-      addRipple: function() {
-        var ripple = new Ripple(this);
-
-        Polymer.dom(this.$.waves).appendChild(ripple.waveContainer);
-        this.$.background.style.backgroundColor = ripple.color;
-        this.ripples.push(ripple);
-
-        this._setAnimating(true);
-
-        return ripple;
-      },
-
-      removeRipple: function(ripple) {
-        var rippleIndex = this.ripples.indexOf(ripple);
-
-        if (rippleIndex < 0) {
-          return;
-        }
-
-        this.ripples.splice(rippleIndex, 1);
-
-        ripple.remove();
-
-        if (!this.ripples.length) {
-          this._setAnimating(false);
-        }
-      },
-
-      /**
-       * This conflicts with Element#antimate().
-       * https://developer.mozilla.org/en-US/docs/Web/API/Element/animate
-       * @suppress {checkTypes}
-       */
-      animate: function() {
-        if (!this._animating) {
-          return;
-        }
-        var index;
-        var ripple;
-
-        for (index = 0; index < this.ripples.length; ++index) {
-          ripple = this.ripples[index];
-
-          ripple.draw();
-
-          this.$.background.style.opacity = ripple.outerOpacity;
-
-          if (ripple.isOpacityFullyDecayed && !ripple.isRestingAtMaxRadius) {
-            this.removeRipple(ripple);
-          }
-        }
-
-        if (!this.shouldKeepAnimating && this.ripples.length === 0) {
-          this.onAnimationComplete();
-        } else {
-          window.requestAnimationFrame(this._boundAnimate);
-        }
-      },
-
-      _onEnterKeydown: function() {
-        this.uiDownAction();
-        this.async(this.uiUpAction, 1);
-      },
-
-      _onSpaceKeydown: function() {
-        this.uiDownAction();
-      },
-
-      _onSpaceKeyup: function() {
-        this.uiUpAction();
-      },
-
-      // note: holdDown does not respect noink since it can be a focus based
-      // effect.
-      _holdDownChanged: function(newVal, oldVal) {
-        if (oldVal === undefined) {
-          return;
-        }
-        if (newVal) {
-          this.downAction();
-        } else {
-          this.upAction();
-        }
-      }
-
-      /**
-      Fired when the animation finishes.
-      This is useful if you want to wait until
-      the ripple animation finishes to perform some action.
-
-      @event transitionend
-      @param {{node: Object}} detail Contains the animated node.
-      */
-    });
-  })();
-</script>
-<!--
-@license
 Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -20114,22 +20665,104 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
       width: 100%;
     }
 
+    #top-bar {
+      align-items: center;
+      background-color: #183D4E;
+      color: #f5f5f5;
+      display: flex;
+      font-size: 16px;
+      padding: 6px 30px 5px;
+    }
+
+    #tool-description {
+      flex-grow: 2;
+    }
+
+    #source-link a {
+      color: #f0f0f0;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
     #top-panel {
+      align-items: center;
       background-color: #eee;
       border-bottom: 2px solid #ddd;
+      display: flex;
       font-size: 30px;
-      padding: 8px 30px 7px;
+      padding: 10px 30px 9px;
+    }
+
+    .top-panel-item {
+      margin-left: 30px;
+      margin-right: 40px;
     }
 
     #page-title {
       color: #444;
-      display: inline-block;
-      font-size: 28px;
-      margin-right: 25px;
+      font-size: 36px;
+      margin-left: 0;
+      margin-right: 60px;
     }
 
-    .timeline-controls {
-      display: inline-block;
+    #distribution-selection .top-column-title {
+      color: #222;
+      font-size: 13px;
+    }
+
+    #distribution-image-list {
+      display: flex;
+      height: 30px;
+    }
+    
+    .distribution-image {
+      height: 30px;
+      margin-right: 7px;
+      width: 30px;
+    }
+
+    .distribution-image img,
+    .distribution-image i {
+      cursor: pointer;
+      height: 30px;
+      width: 30px;
+    }
+
+    .distribution-image i {
+      color: rgb(233, 186, 33);
+    }
+
+    .distribution-item {
+      border: 2px solid #ddd;
+      opacity: 0.3;
+    }
+
+    .distribution-item:hover {
+      border-color: #888;
+      opacity: 0.5;
+    }
+
+    .distribution-item.selected {
+      border-color: #888;
+      opacity: 1.0;
+    }
+
+    #distribution-selection-checkbox paper-checkbox {
+      font-size: 11px;
+      --paper-checkbox-checked-color: #888;
+      --paper-checkbox-label-color: #666;
+      --paper-checkbox-label-spacing: 5px;
+      --paper-checkbox-size: 11px;
+      --paper-checkbox-unchecked-color: #888;
+    }
+    
+    #timeline-controls {
+      align-items: center;
+      display: flex;
+    }
+
+    #timeline-controls button {
+      margin-right: 11px;
     }
 
     .mdl-button--fab.mdl-button--colored,
@@ -20158,14 +20791,10 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
       display: inherit;
     }
 
-    #step-buttons {
-      display: inline-block;
-      vertical-align: middle;
-    }
-
     #step-buttons button {
       background-color: rgb(228, 228, 228);
       border: none;
+      border-radius: 5px;
       cursor: pointer;
       display: block;
       margin-bottom: 1px;
@@ -20189,65 +20818,54 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     }
 
     #iteration {
-      color: #737373;
-      display: inline-block;
+      flex-grow: 2;
       font-size: 14px;
-      margin-left: 15px;
-      margin-top: 16px;
-      vertical-align: top;
+      margin-left: 20px;
+    }
+
+    #iteration .top-column-title {
+      color: #222;
+      font-size: 13px;
     }
 
     #iteration-count {
-      bottom: -5px;
+      color: #666;
       font-size: 28px;
-      margin-left: 3px;
-      position: relative;
+      margin: 5px 0 13px;
+    }
+
+    #save {
+      display: none;
     }
 
     #main-panel {
       display: flex;
-    }
-
-    .ink-panel {
-      display: flex;
-      flex-direction: column;
       font-size: 13px;
+    }
+    
+    .panel-item {      
+      padding: 15px 25px;
     }
 
     .panel-title {
+      align-items: center;
       color: #555;
-      margin-bottom: 10px;
+      display: flex;
+      margin-bottom: 5px;
       font-size: 15px;
+      height: 32px;
       text-transform: uppercase;
     }
 
     .panel-title .mdl-button--icon {
-      height: 20px;
-      margin-left: 5px;
-      min-width: 20px;
-      width: 20px;
-    }
-
-    #charts-panel {
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-width: 0 0 0 1px;
-      padding: 25px;
-      width: 210px;
+      margin-left: 6px;
     }
 
     #model-visualization-container {
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 1px 0 0;
-      flex-grow: 2;
       min-height: 600px;
-      min-width: 815px;
-      padding: 25px;
-    }
-
-    #visualization-container {
-      flex-grow: 2;
-      padding: 25px;
-      position: relative;
+      min-width: 800px;
     }
 
     #model-vis-content-container {
@@ -20640,49 +21258,125 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     #model-visualization-container.any-highlighted .tooltip-for-g.highlighted {
       opacity: 1.0;
     }
+
+    #visualization-container {
+      min-height: 660px;
+      min-width: 400px;
+    }
+
+    #vis-content-container {
+      position: relative;
+    }
+
+    #vis-svg, 
+    #vis-descriptions, 
+    #drawing-container {
+      position: absolute;
+    }
+
+    #vis-descriptions {
+      top: 400px;
+    }
+
+    #drawing-container {
+      cursor: pointer;
+    }
+
+    #charts-panel {
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-width: 0 0 0 1px;
+      width: 200px;
+    }    
   </style>
   <template>
     <div id="gan-lab-container">
+      <div id="top-bar">
+        <div id="tool-description">
+          Play with Generated Adversarial Networks (GANs) in your browser!          
+        </div>
+        <div id="source-link">
+          <a href="https://github.com/poloclub/ganlab" title="Source on GitHub">
+            Fork us on GitHub&nbsp;
+            <img src="figures/github-mark.png">
+          </a>
+        </div>
+      </div>
+      
       <div id="top-panel">
-        <div id="page-title"><strong>GAN</strong> Lab</div>
-        <div class="timeline-controls">
-          <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton" id="reset-button" title="Reset the network">
+        <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
+
+        <div id="distribution-selection" class="top-panel-item">
+          <div class="top-column-title">Data Distribution</div>
+          <div id="distribution-image-list">
+            <div class="distribution-image">
+              <img class="distribution-item" data-distribution-name="line" title="Simple line" src="figures/distribution-line.png">
+            </div>
+            <div class="distribution-image">
+              <img class="distribution-item selected" data-distribution-name="gaussians" title="Mixture of Gaussians" src="figures/distribution-gaussians.png">
+            </div>
+            <div class="distribution-image">
+              <img class="distribution-item" data-distribution-name="ring" title="Ring" src="figures/distribution-ring.png">
+            </div>
+            <div class="distribution-image">
+              <img class="distribution-item" data-distribution-name="disjoint" title="3 disjoint regions" src="figures/distribution-disjoint.png">
+            </div>
+            <div class="distribution-image">
+              <i class="distribution-item material-icons" data-distribution-name="drawing" title="Draw one by yourself">brush</i>
+            </div>
+          </div>
+          <div id="distribution-selection-checkbox">
+            <paper-checkbox id="toggle-pretrained" title="Train on top of a pre-trained model or train from scratch" checked="">
+              Use pre-trained model
+            </paper-checkbox>
+          </div>
+        </div>
+
+        <div id="timeline-controls" class="top-panel-item">
+          <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton" id="reset-button" title="Reset the model">
             <i class="material-icons">replay</i>
           </button>
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored ui-playButton" id="play-pause-button" title="Run/Pause">
+          <button class="mdl-button mdl-js-button mdl-button--fab 
+            mdl-button--colored ui-playButton" id="play-pause-button" title="Run/Pause training">
             <i class="material-icons">play_arrow</i>
             <i class="material-icons">pause</i>
           </button>
-          <button class="mdl-button mdl-js-button mdl-button--icon" id="slow-step" title="Slow mode" style="margin-left: 5px">
+          <button class="mdl-button mdl-js-button mdl-button--icon" id="slow-step" title="Slow-motion mode" style="margin-left: 5px">
             <i class="material-icons">slow_motion_video</i>
           </button>
           <button class="mdl-button mdl-js-button mdl-button--icon ui-stepButton" id="next-step-button" title="Train for one epoch" style="margin-left: 5px">
             <i class="material-icons">skip_next</i>
           </button>
-          <div id="step-buttons" style="visibility: hidden">
-            <button id="next-step-g-button" title="Train only generator for one time">
+
+          <div id="step-buttons" style="display: none">
+            <button id="next-step-g-button" title="Train only generator for one epoch">
               Generator
             </button>
-            <button id="next-step-d-button" title="Train only discriminator for one time">
+            <button id="next-step-d-button" title="Train only discriminator for one epoch">
               Discriminator
             </button>
-            <button id="next-step-all-button" title="Train for one epoch">
+            <button id="next-step-all-button" title="Train both discriminator and generator for one epoch">
               Both
             </button>
           </div>
         </div>
 
-        <div id="iteration">
-          Epoch:
-          <span id="iteration-count">0</span>
+        <div id="iteration" class="top-panel-item">
+          <div class="top-column-title">Epoch</div>
+          <div id="iteration-count">0</div>
+        </div>
+
+        <div id="save" class="top-panel-item">
+          <button class="mdl-button mdl-js-button mdl-button--icon" id="save-model" title="Save model" style="margin-left: 5px">
+            <i class="material-icons">save_alt</i>
+          </button>
         </div>
       </div>
 
       <div id="main-panel">
-        <div id="model-visualization-container" class="ink-panel">
-          <div class="panel-title" style="padding-left: 5px;">
+        <div id="model-visualization-container" class="panel-item">
+          <div class="panel-title" style="padding-left: 5px;" title="Shows the architecture of a model and data flow">
             Model Overview Graph
-            <button class="mdl-button mdl-js-button mdl-button--icon" id="edit-model-button" title="Show/hide hyperparameter options">
+            <button class="mdl-button mdl-js-button mdl-button--icon" id="edit-model-button" title="Show/hide hyperparameters">
               <i class="material-icons">mode_edit</i>
             </button>
           </div>
@@ -20741,14 +21435,17 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
               <div id="component-d-loop" class="model-component" style="top: 24px; left: 590px">
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
-                    <button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-add-button" title="Increase a step">
+                    <button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-add-button" title="Increase a step per epoch">
                       <i class="material-icons">keyboard_arrow_up</i>
-                    </button><br><button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-remove-button" title="Decrease a step per iter">
+                    </button>
+                    <br>
+                    <button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-remove-button" title="Decrease a step per iter">
                       <i class="material-icons">keyboard_arrow_down</i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="k-d-steps">2</span> update(s) per epoch</label>
+                    <label>
+                      <span id="k-d-steps">2</span> update(s) per epoch</label>
                   </div>
                 </div>
               </div>
@@ -20756,14 +21453,17 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
               <div id="component-g-loop" class="model-component" style="top: 452px; left: 590px">
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
-                    <button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-add-button" title="Increase a step">
+                    <button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-add-button" title="Increase a step per epoch">
                       <i class="material-icons">keyboard_arrow_up</i>
-                    </button><br><button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-remove-button" title="Decrease a step per iter">
+                    </button>
+                    <br>
+                    <button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-remove-button" title="Decrease a step per epoch">
                       <i class="material-icons">keyboard_arrow_down</i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="k-g-steps">1</span> update(s) per epoch</label>
+                    <label>
+                      <span id="k-g-steps">1</span> update(s) per epoch</label>
                   </div>
                 </div>
               </div>
@@ -20870,7 +21570,8 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="num-d-layers">1</span> hidden layer(s)</label>
+                    <label>
+                      <span id="num-d-layers">1</span> hidden layer(s)</label>
                   </div>
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="d-neurons-add-button" title="Add a neuron for each layer">
@@ -20908,7 +21609,8 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                     </button>
                   </div>
                   <div class="up-down-buttons">
-                    <label><span id="num-g-layers">1</span> hidden layer(s)</label>
+                    <label>
+                      <span id="num-g-layers">1</span> hidden layer(s)</label>
                   </div>
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="g-neurons-add-button" title="Add a neuron for each layer">
@@ -20938,20 +21640,9 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-true-distribution" class="model-component" style="top: 90px; left: 295px; width: 85px">
-                <div class="config-item" style="width: 85px">
-                  <div class="component-dropdown-label">Distribution</div>
-                  <paper-dropdown-menu no-animations="" no-label-float="">
-                    <paper-listbox attr-for-selected="value" id="shape-dropdown" class="dropdown-content" selected="{{selectedShapeName}}">
-                      <template is="dom-repeat" items="[[shapeNames]]">
-                        <paper-item value="[[item]]" label="[[item]]">
-                          [[item]]
-                        </paper-item>
-                      </template>
-                    </paper-listbox>
-                  </paper-dropdown-menu>
-                  <br>
-                  <div id="t-contour-toggle" class="checkbox-toggle" title="show/hide true distribution's contour" style="right: 1px; top: 3px">
+              <div id="component-true-distribution" class="model-component" style="top: 125px; left: 315px; width: 65px;">
+                <div>
+                  <div id="t-contour-toggle" class="checkbox-toggle" title="show/hide true distribution's contour" style="right: 1px; top: 6px">
                     <input type="checkbox" id="show-t-contour">
                   </div>
                 </div>
@@ -20969,7 +21660,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
               <div id="component-generated-samples" class="model-component" style="top: 250px; left: 285px">
                 <div class="component-sub-label">Fake
                   <div id="g-samples-toggle" class="checkbox-toggle" title="show/hide generated samples">
-                    <input type="checkbox" id="show-g-samples" checked="checked">
+                    <input type="checkbox" id="show-g-samples" checked="">
                   </div>
                 </div>
                 <svg id="svg-generated-samples"></svg>
@@ -20997,7 +21688,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
             </div>
 
             <div id="tooltips">
-                <div id="tooltip-d-generated-samples" class="tooltip tooltip-for-d" style="top: -10px; left: 0px">
+              <div id="tooltip-d-generated-samples" class="tooltip tooltip-for-d" style="top: -10px; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
               </div>
@@ -21043,76 +21734,88 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
 
         <div id="drawing-disable-background"></div>
 
-        <div id="visualization-container" class="ink-panel">
-          <div class="panel-title">Layered Distributions</div>
+        <div id="visualization-container" class="panel-item">
+          <div class="panel-title" title="Visualizes components in the model overview graph as 
+multiple layers. The six layers can be turned on or off using 
+green toggle switches on the left.">
+            Layered Distributions
+          </div>
 
-          <svg id="vis-svg" width="400" height="400">
-            <g id="vis-area">
-              <g id="vis-discriminator-output" class="vis-panel">
-                <rect class="plot-bg" width="400" height="400" x="0" y="0"></rect>
+          <div id="vis-content-container">
+            <svg id="vis-svg" width="400" height="400">
+              <g id="vis-area">
+                <g id="vis-discriminator-output" class="vis-panel">
+                  <rect class="plot-bg" width="400" height="400" x="0" y="0"></rect>
+                </g>
+                <g id="vis-samples" class="vis-panel">
+                  <g id="vis-true-samples-contour" class="contour" style="visibility: hidden"></g>
+                  <g id="vis-true-samples"></g>
+                  <g id="vis-generator-gradients"></g>
+                  <g id="vis-generated-samples"></g>
+                  <g id="vis-manifold" style="visibility: hidden"></g>
+                  <rect class="plot-border" width="400" height="400" x="0" y="0"></rect>
+                </g>
               </g>
-              <g id="vis-samples" class="vis-panel">
-                <g id="vis-true-samples-contour" class="contour" style="visibility: hidden"></g>
-                <g id="vis-true-samples"></g>
-                <g id="vis-generator-gradients"></g>
-                <g id="vis-generated-samples"></g>
-                <g id="vis-manifold" style="visibility: hidden"></g>
-                <rect class="plot-border" width="400" height="400" x="0" y="0"></rect>
+            </svg>
+            <svg id="vis-descriptions" width="400" height="220">
+              <g transform="translate(5,20)">
+                <text transform="translate(0,0)">
+                  Each dot is a 2D data sample:
+                </text>
+                <circle class="true-dot" r="2" transform="translate(5,15)"></circle>
+                <text transform="translate(15,19)">Real samples</text>
+                <circle class="generated-dot" r="2" transform="translate(5,34)"></circle>
+                <text transform="translate(15,38)">Fake samples</text>
               </g>
-            </g>
-          </svg>
-          <svg id="vis-descriptions" width="400" height="300">
-            <g transform="translate(0,20)">
-              <text transform="translate(0,0)">
-                Each dot is a sample:
-              </text>
-              <circle class="true-dot" r="2" transform="translate(5,15)"></circle>
-              <text transform="translate(15,19)">Real samples</text>
-              <circle class="generated-dot" r="2" transform="translate(5,35)"></circle>
-              <text transform="translate(15,39)">Fake samples</text>
-            </g>
-            <g transform="translate(0,80)">
-              <text transform="translate(0,10)">
-                Background colors of grid cells represent discriminator's predictions:
-              </text>
-              <rect class="true-dot" width="10" height="10" transform="translate(1,20)" style="fill-opacity: 0.75"></rect>
-              <text transform="translate(16,29)">
-                Samples in this cell seem real.
-              </text>
-              <rect width="10" height="10" transform="translate(1,40)" style="fill: #e2e2e2"></rect>
-              <text transform="translate(16,49)">
-                Difficult to determine whether samples are real or fake.
-              </text>
-              <rect class="generated-dot" width="10" height="10" transform="translate(1,60)" style="fill-opacity: 0.75"></rect>
-              <text transform="translate(16,69)">
-                Samples in this cell seem fake.
-              </text>
-            </g>
-            <g transform="translate(0,180)">
-              <text transform="translate(0,0)">
-                Lines from fake samples represent gradients for generator:
-              </text>
-              <circle class="generated-dot" r="2" transform="translate(3,18)"></circle>
-              <text transform="translate(15,19)">
-                This sample needs to move upper right to decrease generator's loss.
-              </text>
-              <polygon class="gradient-generated" transform="translate(3,18)" points="0,0 1,1 10,-10 -1,-1"></polygon>
-            </g>
-          </svg>
+              <g transform="translate(5,80)">
+                <text transform="translate(0,10)">
+                  Background colors of grid cells represent 
+                  discriminator's predictions:
+                </text>
+                <rect class="true-dot" width="10" height="10" transform="translate(1,20)" style="fill-opacity: 0.75"></rect>
+                <text transform="translate(16,29)">
+                  Samples in this cell seem real.
+                </text>
+                <rect width="10" height="10" transform="translate(1,39)" style="fill: #e2e2e2"></rect>
+                <text transform="translate(16,48)">
+                  Difficult to determine whether samples are real or fake.
+                </text>
+                <rect class="generated-dot" width="10" height="10" transform="translate(1,58)" style="fill-opacity: 0.75"></rect>
+                <text transform="translate(16,67)">
+                  Samples in this cell seem fake.
+                </text>
+              </g>
+              <g transform="translate(5,180)">
+                <text transform="translate(0,0)">
+                  Lines from fake samples represent gradients for generator:
+                </text>
+                <circle class="generated-dot" r="2" transform="translate(3,18)"></circle>
+                <text transform="translate(15,19)">
+                  This sample needs to move upper right 
+                  to decrease generator's loss.
+                </text>
+                <polygon class="gradient-generated" transform="translate(3,18)" points="0,0 1,1 10,-10 -1,-1"></polygon>
+              </g>
+            </svg>
 
-          <div id="drawing-container">
-            <canvas id="input-drawing-canvas" width="400" height="400"></canvas>
-            <div id="drawing-instruction">Draw a distribution above, then click the apply button.</div>
-            <button id="finish-drawing" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Apply</button>
+            <div id="drawing-container">
+              <canvas id="input-drawing-canvas" width="400" height="400"></canvas>
+              <div id="drawing-instruction">
+                Draw a distribution above, then click the apply button.
+              </div>
+              <button id="finish-drawing" class="mdl-button mdl-js-button mdl-button--raised">
+                Apply
+              </button>
+            </div>
           </div>
         </div>
 
-        <div id="charts-panel" class="ink-panel">
+        <div id="charts-panel" class="panel-item">
           <div class="panel-title">Metrics</div>
 
           <div id="chart-container">
-            <canvas id="cost-chart" width="210" height="200"></canvas>
-            <canvas id="eval-chart" width="210" height="200"></canvas>
+            <canvas id="cost-chart" width="200" height="200"></canvas>
+            <canvas id="eval-chart" width="200" height="200"></canvas>
           </div>
         </div>
       </div>
@@ -21196,12 +21899,24 @@ inializePolymerPage();
     body {
       font-family: "Roboto", "Helvetica", "Arial", sans-serif;
       margin: 0;
+      min-width: 1550px;
       width: 100%;
       height: 100%;
     }
+
+    #top-notice-bar {
+      background-color: rgb(248, 72, 66);
+      color: #fff;
+      font-size: 16px;
+      padding: 20px 30px;
+    }
+    
   </style></div>
+  <div id="top-notice-bar">
+      Please note that the demo in this page is provided for reviewers of our research paper under review. GAN Lab will be officially announced by the authors later.
+  </div>
   <gan-lab></gan-lab>
 
 
 
-</body></html>
+<link rel="import" href="index.html"></body></html>
