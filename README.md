@@ -2,16 +2,18 @@
 
 By 
 [Minsuk Kahng](http://minsuk.com),
-[Nikhil Thorat](https://twitter.com/nsthorat)
+[Nikhil Thorat](https://twitter.com/nsthorat),
 [Polo Chau](https://www.cc.gatech.edu/~dchau/),
 [Fernanda Viégas](http://fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/)
 
+**_Please note that the source code and demo in this repository are provided for reviewers of our research paper under review. GAN Lab will be officially announced by the authors later._**
+
 ## Overview
 
-GAN Lab is a novel interactive visualization tool designed for non-experts to learn and experiment with Generative Adversarial Networks (GANs), a popular class of complex deep learning models. With GAN Lab, users can interactively train GAN models for 2D data distributions and visualize the dynamic training process's intermediate results, similar to [TensorFlow Playground](http://playground.tensorflow.org/).
+GAN Lab is a novel interactive visualization tool for anyone to learn and experiment with Generative Adversarial Networks (GANs), a popular class of complex deep learning models. With GAN Lab, you can interactively train GAN models for 2D data distributions and visualize their inter-workings, similar to [TensorFlow Playground](http://playground.tensorflow.org/).
 
-GAN Lab uses [TensorFlow.js](https://js.tensorflow.org/) (formerly known as deeplearn.js), an in-browser GPU-accelerated deep learning library. Everything, from model training to visualization, is implemented with JavaScript. Users only need a web browser like Chrome to run GAN Lab. Our implementation approach significantly broadens people's access to interactive tools for deep learning. 
+GAN Lab uses [TensorFlow.js](https://js.tensorflow.org/), an in-browser GPU-accelerated deep learning library. Everything, from model training to visualization, is implemented with JavaScript. Users only need a web browser like Chrome to run GAN Lab. Our implementation approach significantly broadens people's access to interactive tools for deep learning. 
 
 ![Screenshot of GAN Lab](ganlab-teaser.png)
 
@@ -22,7 +24,7 @@ Click the following link:
 
 [https://poloclub.github.io/ganlab/](https://poloclub.github.io/ganlab/)
 
-It runs on most modern web browsers. We suggest you use Google Chrome on your PC.
+It runs on most modern web browsers. We suggest you use Google Chrome.
 
 
 ## Development
@@ -67,7 +69,7 @@ and compiles the code for you.
 
 GAN Lab was created by 
 [Minsuk Kahng](http://minsuk.com),
-[Nikhil Thorat](https://twitter.com/nsthorat)
+[Nikhil Thorat](https://twitter.com/nsthorat),
 [Polo Chau](https://www.cc.gatech.edu/~dchau/),
 [Fernanda Viégas](http://fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/),
@@ -87,4 +89,4 @@ For more information, check out
 [Fernanda Viégas](http://fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/).
 "GAN Lab: Understanding Complex Deep Generative Models using Interactive Visual Experimentation."
-*IEEE Transactions on Visualization and Computer Graphics ([VAST 2018](http://ieeevis.org/year/2018/welcome))*.
+*IEEE Transactions on Visualization and Computer Graphics, 25(1), Jan. 2019 ([VAST 2018](http://ieeevis.org/year/2018/welcome))*.
