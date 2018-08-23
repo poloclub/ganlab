@@ -11,7 +11,7 @@ By
 
 ## Overview
 
-GAN Lab is a novel interactive visualization tool for anyone to learn and experiment with Generative Adversarial Networks (GANs), a popular class of complex deep learning models. With GAN Lab, you can interactively train GAN models for 2D data distributions and visualize their inter-workings, similar to [TensorFlow Playground](http://playground.tensorflow.org/).
+GAN Lab is a novel interactive visualization tool for anyone to learn and experiment with Generative Adversarial Networks (GANs), a popular class of complex deep learning models. With GAN Lab, you can interactively train GAN models for 2D data distributions and visualize their inner-workings, similar to [TensorFlow Playground](http://playground.tensorflow.org/).
 
 GAN Lab uses [TensorFlow.js](https://js.tensorflow.org/), an in-browser GPU-accelerated deep learning library. Everything, from model training to visualization, is implemented with JavaScript. Users only need a web browser like Chrome to run GAN Lab. Our implementation approach significantly broadens people's access to interactive tools for deep learning. 
 
@@ -89,4 +89,4 @@ For more information, check out
 [Fernanda Viégas](http://fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/).
 "GAN Lab: Understanding Complex Deep Generative Models using Interactive Visual Experimentation."
-*IEEE Transactions on Visualization and Computer Graphics, 25(1), Jan. 2019 ([VAST 2018](http://ieeevis.org/year/2018/welcome))*.
+*IEEE Transactions on Visualization and Computer Graphics, 25(1) ([VAST 2018](http://ieeevis.org/year/2018/welcome))*, Jan. 2019.
