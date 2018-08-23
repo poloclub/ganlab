@@ -47,16 +47,16 @@ Run the following command:
 $ ./scripts/watch-demo
 
 >> Waiting for initial compile...
->> 3462522 bytes written to src/bundle.js (2.17 seconds) at 00:00:00
+>> 3462522 bytes written to demo/bundle.js (2.17 seconds) at 00:00:00
 >> Starting up http-server, serving ./
 >> Available on:
 >>   http://127.0.0.1:8080
 >> Hit CTRL-C to stop the server
 ```
 
-Then visit `http://localhost:8080/src/`. 
+Then visit `http://localhost:8080/demo/`. 
 
-The `watch-demo` script monitors for changes of typescript code (e.g., `src/ganlab.ts`)
+The `watch-demo` script monitors for changes of typescript code (e.g., `demo/ganlab.ts`)
 and compiles the code for you.
 
 
