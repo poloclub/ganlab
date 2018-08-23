@@ -19,14 +19,20 @@
     #top-bar {
       align-items: center;
       background-color: #183D4E;
+      color: #f5f5f5;
       display: flex;
-      padding: 5px 30px 4px;
+      font-size: 16px;
+      padding: 6px 30px 5px;
     }
 
     #tool-description {
       flex-grow: 2;
-      color: #f7f7f7;
-      font-size: 16px;
+    }
+
+    #source-link a {
+      color: #f0f0f0;
+      font-size: 14px;
+      text-decoration: none;
     }
 
     #top-panel {
@@ -53,7 +59,6 @@
     #distribution-selection .top-column-title {
       color: #222;
       font-size: 13px;
-      text-transform: uppercase;
     }
 
     #distribution-image-list {
@@ -638,10 +643,11 @@
     <div id="gan-lab-container">
       <div id="top-bar">
         <div id="tool-description">
-          Play with Generated Adversarial Networks (GANs) in your browser!
+          Play with Generated Adversarial Networks (GANs) in your browser!          
         </div>
         <div id="source-link">
           <a href="https://github.com/poloclub/ganlab" title="Source on GitHub">
+            Fork us on GitHub&nbsp;
             <img src="github-mark.png" />
           </a>
         </div>
@@ -651,7 +657,7 @@
         <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
 
         <div id="distribution-selection" class="top-panel-item">
-          <div class="top-column-title">Data distribution</div>
+          <div class="top-column-title">Data Distribution</div>
           <div id="distribution-image-list">
             <div class="distribution-image">
               <img class="distribution-item" 
