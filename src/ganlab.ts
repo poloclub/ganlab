@@ -19,16 +19,12 @@ const ATLAS_SIZE = 12000;
 
 const NUM_GRID_CELLS = 30;
 const NUM_MANIFOLD_CELLS = 20;
-const GRAD_ARROW_UNIT_LEN = 0.25;
+const GRAD_ARROW_UNIT_LEN = 0.15;
 const NUM_TRUE_SAMPLES_VISUALIZED = 450;
 
 const VIS_INTERVAL = 50;
 const EPOCH_INTERVAL = 2;
 const SLOW_INTERVAL_MS = 1250;
-
-// Hack to prevent error when using grads (doesn't allow this in model).
-//let dVariables: tf.Variable[];
-//let numDiscriminatorLayers: number;
 
 interface ManifoldCell {
   points: Float32Array[];
@@ -62,13 +58,14 @@ class GANLab extends GANLabPolymer {
   private uniformNoiseProvider: ganlab_input_providers.InputProvider;
   private uniformInputProvider: ganlab_input_providers.InputProvider;
 
+  private usePretrained: boolean;
+
   private model: ganlab_models.GANLabModel;
   private noiseSize: number;
   private numGeneratorLayers: number;
   private numDiscriminatorLayers: number;
   private numGeneratorNeurons: number;
   private numDiscriminatorNeurons: number;
-
   private kDSteps: number;
   private kGSteps: number;
 
@@ -94,6 +91,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorLayers += 1;
           numGeneratorLayersElement.innerText =
             this.numGeneratorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -103,6 +101,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorLayers -= 1;
           numGeneratorLayersElement.innerText =
             this.numGeneratorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -116,6 +115,7 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorLayers += 1;
           numDiscriminatorLayersElement.innerText =
             this.numDiscriminatorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -125,6 +125,7 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorLayers -= 1;
           numDiscriminatorLayersElement.innerText =
             this.numDiscriminatorLayers.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -138,6 +139,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorNeurons += 1;
           numGeneratorNeuronsElement.innerText =
             this.numGeneratorNeurons.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -147,6 +149,7 @@ class GANLab extends GANLabPolymer {
           this.numGeneratorNeurons -= 1;
           numGeneratorNeuronsElement.innerText =
             this.numGeneratorNeurons.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -160,7 +163,8 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorNeurons += 1;
           numDiscriminatorNeuronsElement.innerText =
             this.numDiscriminatorNeurons.toString();
-          this.createExperiment();
+            this.disabledPretrainedMode();
+            this.createExperiment();
         }
       });
     document.getElementById('d-neurons-remove-button').addEventListener(
@@ -169,6 +173,7 @@ class GANLab extends GANLabPolymer {
           this.numDiscriminatorNeurons -= 1;
           numDiscriminatorNeuronsElement.innerText =
             this.numDiscriminatorNeurons.toString();
+          this.disabledPretrainedMode();
           this.createExperiment();
         }
       });
@@ -254,20 +259,17 @@ class GANLab extends GANLabPolymer {
           'G', this.gOptimizerType, this.gLearningRate);
       });
 
-    this.shapeNames = [
-      'Line', 'Gaussian', 'Two Gaussians', 'Ring', 'Three Regions', 'Drawing'];
-    this.selectedShapeName = 'Two Gaussians';
-    this.querySelector('#shape-dropdown')!.addEventListener(
+    this.shapeNames = ['line', 'gaussians', 'ring', 'disjoint', 'drawing'];
+    this.selectedShapeName = 'gaussians';
+
+    const distributionElementList = 
+      document.querySelectorAll('.distribution-item');
+
+    for (let i = 0; i < distributionElementList.length; ++i) { 
       // tslint:disable-next-line:no-any event has no type
-      'iron-activate', (event: any) => {
-        this.selectedShapeName = event.detail.selected;
-        if (this.selectedShapeName === 'Drawing') {
-          this.pause();
-          this.drawing.prepareDrawing();
-        } else {
-          this.createExperiment();
-        }
-      });
+      distributionElementList[i].addEventListener('click', (event: any) =>
+        this.changeDataset(event.target), false);
+    }  
 
     this.noiseTypes =
       ['1D Uniform', '1D Gaussian', '2D Uniform', '2D Gaussian'];
@@ -278,6 +280,7 @@ class GANLab extends GANLabPolymer {
       'iron-activate', (event: any) => {
         this.selectedNoiseType = event.detail.selected;
         this.noiseSize = +this.selectedNoiseType.substring(0, 1);
+        this.disabledPretrainedMode();
         this.createExperiment();
       });
 
@@ -330,6 +333,15 @@ class GANLab extends GANLabPolymer {
           (event.target as any).checked ? 'visible' : 'hidden';
       });
 
+    // Pre-trained checkbox.
+    this.usePretrained = true;
+    this.querySelector('#toggle-pretrained')!.addEventListener(
+      'change', (event: Event) => {
+        // tslint:disable-next-line:no-any
+        this.usePretrained = (event.target as any).checked;
+        this.loadModelAndCreateExperiment();
+      });
+      
     // Timeline controls.
     document.getElementById('play-pause-button').addEventListener(
       'click', () => this.onClickPlayPauseButton());
@@ -359,6 +371,9 @@ class GANLab extends GANLabPolymer {
     this.iterCountElement =
       document.getElementById('iteration-count') as HTMLElement;
 
+    document.getElementById('save-model')!.addEventListener(
+        'click', () => this.onClickSaveModelButton());
+  
     // Visualization.
     this.plotSizePx = 400;
     this.mediumPlotSizePx = 150;
@@ -394,7 +409,7 @@ class GANLab extends GANLabPolymer {
       'click', () => this.onClickFinishDrawingButton());
 
     // Create a new experiment.
-    this.createExperiment();
+    this.loadModelAndCreateExperiment();
   }
 
   private createExperiment() {
@@ -495,11 +510,58 @@ class GANLab extends GANLabPolymer {
     this.model.updateOptimizer('G', this.gOptimizerType, this.gLearningRate);
   }
 
+  private changeDataset(element: HTMLElement) {
+    this.selectedShapeName = element.getAttribute('data-distribution-name');
+
+    const distributionElementList = 
+      document.querySelectorAll('.distribution-item');
+    for (let i = 0; i < distributionElementList.length; ++i) {
+      if (distributionElementList[i].classList.contains('selected')) {
+        distributionElementList[i].classList.remove('selected');
+      }
+    }
+    if (!element.classList.contains('selected')) {
+      element.classList.add('selected');
+    }
+
+    this.disabledPretrainedMode();
+    this.loadModelAndCreateExperiment();
+  }
+    
+  private loadModelAndCreateExperiment() {
+    if (this.selectedShapeName === 'drawing') {
+      this.pause();
+      this.drawing.prepareDrawing();
+      this.disabledPretrainedMode();
+    } else if (this.usePretrained === true) {
+      const filename = `pretrained_${this.selectedShapeName}`;
+      this.loadPretrainedWeightFile(filename).then((loadedModel) => {
+        const loadedIterCount = this.iterationCount;
+
+        this.createExperiment();
+        this.model.loadPretrainedWeights(loadedModel);
+
+        // Run one iteration for visualization.
+        this.isPlaying = true;
+        this.iterateTraining(false);
+        this.isPlaying = false;
+
+        this.iterationCount = loadedIterCount;
+        this.iterCountElement.innerText = this.zeroPad(this.iterationCount);
+      });
+    } else {
+      const filename = `pretrained_${this.selectedShapeName}`;
+      this.loadPretrainedWeightFile(filename).then((loadedModel) => {
+        this.createExperiment();
+      });
+    }
+  }
+  
   private sampleFromTrueDistribution(
     selectedShapeName: string, drawingPositions: Array<[number, number]>) {
     const rand = Math.random();
     switch (selectedShapeName) {
-      case 'Drawing': {
+      case 'drawing': {
         const index = Math.floor(drawingPositions.length * rand);
         return [
           drawingPositions[index][0] +
@@ -508,19 +570,13 @@ class GANLab extends GANLabPolymer {
           0.02 * ganlab_input_providers.randNormal()
         ];
       }
-      case 'Line': {
+      case 'line': {
         return [
           0.8 - 0.75 * rand + 0.01 * ganlab_input_providers.randNormal(),
           0.6 + 0.3 * rand + 0.01 * ganlab_input_providers.randNormal()
         ];
       }
-      case 'Gaussian': {
-        return [
-          0.55 + 0.125 * ganlab_input_providers.randNormal(),
-          0.7 + 0.025 * ganlab_input_providers.randNormal()
-        ];
-      }
-      case 'Two Gaussians': {
+      case 'gaussians': {
         if (rand < 0.5) {
           return [
             0.3 + 0.1 * ganlab_input_providers.randNormal(),
@@ -533,7 +589,7 @@ class GANLab extends GANLabPolymer {
           ];
         }
       }
-      case 'Ring': {
+      case 'ring': {
         return [
           0.5 + 0.3 * Math.cos(rand * Math.PI * 2) +
           0.025 * ganlab_input_providers.randNormal(),
@@ -541,7 +597,7 @@ class GANLab extends GANLabPolymer {
           0.025 * ganlab_input_providers.randNormal(),
         ];
       }
-      case 'Three Regions': {
+      case 'disjoint': {
         const stdev = 0.025;
         if (rand < 0.333) {
           return [
@@ -650,6 +706,13 @@ class GANLab extends GANLabPolymer {
     this.createExperiment();
   }
 
+  private disabledPretrainedMode() {
+    this.usePretrained = false;
+    const element = 
+      document.getElementById('toggle-pretrained') as HTMLInputElement;
+    element.checked = false;
+  }
+
   private play() {
     if (this.stepMode) {
       this.onClickStepModeButton();
@@ -695,7 +758,7 @@ class GANLab extends GANLabPolymer {
     if (this.isPlaying) {
       this.pause();
     }
-    this.createExperiment();
+    this.loadModelAndCreateExperiment();
   }
 
   private onClickStepModeButton() {
@@ -710,12 +773,12 @@ class GANLab extends GANLabPolymer {
       this.stepMode = true;
       document.getElementById('next-step-button')
         .classList.add('mdl-button--colored');
-      document.getElementById('step-buttons').style.visibility = 'visible';
+      document.getElementById('step-buttons').style.display = 'block';
     } else {
       this.stepMode = false;
       document.getElementById('next-step-button')
         .classList.remove('mdl-button--colored');
-      document.getElementById('step-buttons').style.visibility = 'hidden';
+      document.getElementById('step-buttons').style.display = 'none';
     }
   }
 
@@ -922,7 +985,7 @@ class GANLab extends GANLabPolymer {
           .selectAll('.true-dot')
           .data(pData1)
           .style('fill', (d: number) => this.colorScale(sqrtAbs(d)));
-        if (this.iterationCount > 1) {
+        if (this.iterationCount > 1 || this.usePretrained) {
           d3.select('#svg-generated-prediction')
             .selectAll('.generated-dot')
             .data(pData2)
@@ -1359,7 +1422,7 @@ class GANLab extends GANLabPolymer {
     if (this.iterationCount >= 999999) {
       this.isPlaying = false;
     }
-
+    
     requestAnimationFrame(() => this.iterateTraining(true));
   }
 
@@ -1540,6 +1603,77 @@ class GANLab extends GANLabPolymer {
       this.highlightedTooltip.classList.remove('shown');
       this.highlightedTooltip.classList.remove('highlighted');
     }
+  }
+
+  private async onClickSaveModelButton() {
+    const dTensors: tf.NamedTensorMap = 
+      this.model.dVariables.reduce((obj, item, i) => {
+        obj[`d-${i}`] = item;
+        return obj;
+      }, {});
+    const gTensors: tf.NamedTensorMap = 
+      this.model.gVariables.reduce((obj, item, i) => {
+        obj[`g-${i}`] = item;
+        return obj;
+      }, {});
+    const tensors: tf.NamedTensorMap = {...dTensors, ...gTensors};
+
+    const modelInfo: {} = {
+      'shape_name': this.selectedShapeName,
+      'iter_count': this.iterationCount,
+      'config': {
+        selectedNoiseType: this.selectedNoiseType,
+        noiseSize: this.noiseSize,
+        numGeneratorLayers: this.numGeneratorLayers,
+        numDiscriminatorLayers: this.numDiscriminatorLayers,
+        numGeneratorNeurons: this.numGeneratorNeurons,
+        numDiscriminatorNeurons: this.numDiscriminatorNeurons,
+        dLearningRate: this.dLearningRate,
+        gLearningRate: this.gLearningRate,
+        dOptimizerType: this.dOptimizerType,
+        gOptimizerType: this.gOptimizerType,
+        lossType: this.lossType,
+        kDSteps: this.kDSteps,
+        kGSteps: this.kGSteps,
+      }
+    };
+    const weightDataAndSpecs = await tf.io.encodeWeights(tensors);
+    const modelArtifacts: tf.io.ModelArtifacts = {
+      modelTopology: modelInfo,
+      weightSpecs: weightDataAndSpecs.specs,
+      weightData: weightDataAndSpecs.data,
+    };
+
+    const downloadTrigger = 
+      tf.io.getSaveHandlers('downloads://ganlab_trained_model')[0];
+    await downloadTrigger.save(modelArtifacts);
+  }
+
+  private async loadPretrainedWeightFile(filename: string): 
+      Promise<tf.io.ModelArtifacts> {
+    const handler = 
+      tf.io.browserHTTPRequest(`../pretrained_models/${filename}.json`);
+    const loadedModel: tf.io.ModelArtifacts = await handler.load();
+
+    this.iterationCount = loadedModel.modelTopology['iter_count'];
+    
+    const loadedConfig: {} = loadedModel.modelTopology['config'];
+    for (let configProperty in loadedConfig) {
+      this[configProperty] = loadedConfig[configProperty];
+    }
+
+    document.getElementById('num-g-layers')!.innerText =
+      this.numGeneratorLayers.toString();
+    document.getElementById('num-d-layers')!.innerText =
+      this.numDiscriminatorLayers.toString();
+    document.getElementById('num-g-neurons')!.innerText =
+      this.numGeneratorNeurons.toString();
+    document.getElementById('num-d-neurons')!.innerText =
+      this.numDiscriminatorNeurons.toString();
+    document.getElementById('k-d-steps')!.innerText = this.kDSteps.toString();
+    document.getElementById('k-g-steps')!.innerText = this.kGSteps.toString();
+
+    return loadedModel as Promise<tf.io.ModelArtifacts>;
   }
 
   private recreateCharts() {
