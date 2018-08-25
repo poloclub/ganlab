@@ -11,22 +11,23 @@
 
 <dom-module id="gan-lab">
   <style>
-    #gan-lab-container {
-      background-color: #f7f7f7;
-      width: 100%;
+    .panel-container {
+      display: flex;
+      margin-left: auto;
+      margin-right: auto;
+      justify-content: space-between;
+      width: 1402px;
     }
 
     #top-bar {
-      align-items: center;
       background-color: #183D4E;
       color: #f5f5f5;
-      display: flex;
       font-size: 16px;
       padding: 6px 30px 5px;
     }
 
-    #tool-description {
-      flex-grow: 2;
+    #top-bar-panel-container {
+      align-items: center;
     }
 
     #source-link a {
@@ -36,12 +37,14 @@
     }
 
     #top-panel {
-      align-items: center;
       background-color: #eee;
       border-bottom: 2px solid #ddd;
-      display: flex;
       font-size: 30px;
       padding: 10px 30px 9px;
+    }
+
+    #top-panel-container {
+      align-items: center;
     }
 
     .top-panel-item {
@@ -169,7 +172,7 @@
     }
 
     #iteration {
-      flex-grow: 2;
+      flex-grow: 1;
       font-size: 14px;
       margin-left: 20px;
     }
@@ -190,12 +193,12 @@
     }
 
     #main-panel {
-      display: flex;
-      font-size: 13px;
+      background-color: #f7f7f7;
+      border-bottom: 2px solid #eee;
     }
-    
+
     .panel-item {      
-      padding: 15px 25px;
+      padding: 15px 20px;
     }
 
     .panel-title {
@@ -215,8 +218,9 @@
     #model-visualization-container {
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 1px 0 0;
-      min-height: 600px;
-      min-width: 800px;
+      min-height: 570px;
+      min-width: 740px;
+      padding-left: 0;
     }
 
     #model-vis-content-container {
@@ -225,9 +229,9 @@
 
     #model-vis-svg,
     #model-vis-div {
-      height: 600px;
+      height: 570px;
       position: absolute;
-      width: 800px;
+      width: 740px;
     }
 
     #model-vis-svg {
@@ -269,25 +273,25 @@
       padding-top: 5px;
       position: absolute;
       text-align: center;
-      width: 120px;
+      width: 110px;
     }
 
     .model-component svg {
       background-color: #fff;
       border: 1px solid #eee;
       border-radius: 3px;
-      height: 60px;
-      width: 60px;
+      height: 50px;
+      width: 50px;
     }
 
     .model-component-model {
-      width: 150px;
+      width: 140px;
     }
 
     .model-component-model svg {
       border: 3px solid rgb(170, 170, 170);
-      height: 150px;
-      width: 150px;
+      height: 140px;
+      width: 140px;
     }
 
     .model-component-options {
@@ -566,14 +570,19 @@
     }
 
     #tooltips {
+      background-color: #f7f7f7;
       display: none;
+      height: 40px;
+      position: absolute;
+      top: -30px;
+      width: 100%;
     }
 
     .tooltip-number {
       font-size: 24px;
       height: 10px;
       left: 5px;
-      padding: 3px;
+      padding: 3px 2px;
       position: absolute;
       text-align: center;
       top: 10px;
@@ -583,7 +592,7 @@
       color: white;
       font-size: 12px;
       line-height: 13px;
-      padding: 7px 6px 7px 29px;
+      padding: 7px 0 7px 25px;
       position: absolute;
       width: 125px;
     }
@@ -611,7 +620,7 @@
     }
 
     #visualization-container {
-      min-height: 660px;
+      min-height: 610px;
       min-width: 400px;
     }
 
@@ -636,12 +645,13 @@
     #charts-panel {
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 0 0 1px;
-      width: 200px;
+      width: 180px;
+      padding-right: 0;
     }    
   </style>
-  <template>
-    <div id="gan-lab-container">
-      <div id="top-bar">
+  <template>    
+    <div id="top-bar">
+      <div id="top-bar-panel-container" class="panel-container">
         <div id="tool-description">
           Play with Generated Adversarial Networks (GANs) in your browser!          
         </div>
@@ -652,8 +662,10 @@
           </a>
         </div>
       </div>
-      
-      <div id="top-panel">
+    </div>
+    
+    <div id="top-panel">
+      <div id="top-panel-container" class="panel-container">
         <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
 
         <div id="distribution-selection" class="top-panel-item">
@@ -750,8 +762,10 @@
           </button>
         </div>
       </div>
+    </div>
 
-      <div id="main-panel">
+    <div id="main-panel">
+      <div id="main-panel-container" class="panel-container">
         <div id="model-visualization-container" class="panel-item">
           <div class="panel-title" style="padding-left: 5px;"
             title="Shows the architecture of a model and data flow">
@@ -764,38 +778,38 @@
 
           <div id="model-vis-content-container">
             <svg id="model-vis-svg" class="">
-              <path d="M86,285 L122,285"
+              <path d="M66,260 L102,260"
                 id="arrow-g-forward-i" class="d-update-flow g-update-flow" />
-              <path d="M278,285 L314,285"
+              <path d="M248,260 L284,260"
                 id="arrow-g-forward-o" class="d-update-flow g-update-flow" />
-              <path d="M376,195 L412,195"
+              <path d="M336,166 L372,166"
                 id="arrow-t-d-forward-i" class="d-update-flow" />
-              <path d="M568,195 L604,195"
+              <path d="M518,166 L554,166"
                 id="arrow-t-d-forward-o" class="d-update-flow" />
-              <path d="M376,285 L412,285"
+              <path d="M336,260 L372,260"
                 id="arrow-g-d-forward-i" class="d-update-flow g-update-flow" />
-              <path d="M568,285 L604,285"
+              <path d="M518,260 L554,260"
                 id="arrow-g-d-forward-o" class="d-update-flow g-update-flow" />
 
-              <path d="M665,195 C685,195 675,240 700,240"
+              <path d="M605,166 C625,166 615,213 640,213"
                 id="arrow-t-prediction-d-loss" class="d-update-flow" />
-              <path d="M665,285 C685,285 675,240 700,240"
+              <path d="M605,260 C625,260 615,213 640,213"
                 id="arrow-g-prediction-d-loss" class="d-update-flow" />
-              <path d="M700,240 L710,240 a10,10 0 0 0 10,-10
-                L720,60 a10,10 0 0 0 -10,-10
-                L500,50 a10,10 0 0 0 -10,10 L490,161"
+              <path d="M640,213 L650,213 a10,10 0 0 0 10,-10
+                L660,40 a10,10 0 0 0 -10,-10
+                L445,30 a10,10 0 0 0 -10,10 L435,141"
                 id="arrow-d-loss-d" class="d-update-flow" />
 
-              <path d="M665,285 L710,285 a10,10 0 0 1 10,10
-                L720,445 a10,10 0 0 1 -10,10 L376,455"
+              <path d="M605,260 L650,260 a10,10 0 0 1 10,10
+                L660,415 a10,10 0 0 1 -10,10 L336,425"
                 id="arrow-g-loss-g-1" class="g-update-flow" />
-              <path d="M314,455 L210,455 a10,10 0 0 1 -10,-10 L200,333"
+              <path d="M289,425 L185,425 a10,10 0 0 1 -10,-10 L175,303"
                 id="arrow-g-loss-g-2" class="g-update-flow" />
             </svg>
 
             <div id="model-vis-div">
               <div id="component-d-loss" class="model-component"
-                style="top: 180px; left: 727px">
+                style="top: 160px; left: 667px">
                 <div id="d-loss-bar" class="loss-bar" title=""></div>
                 <div class="component-loss-label">Discriminator<br />loss</div>
                 <div class="component-tooltip">
@@ -804,7 +818,7 @@
               </div>
 
               <div id="component-g-loss" class="model-component"
-                style="top: 295px; left: 727px">
+                style="top: 275px; left: 667px">
                 <div id="g-loss-bar" class="loss-bar" title=""></div>
                 <div class="component-loss-label">Generator<br />loss</div>
                 <div class="component-tooltip">
@@ -813,7 +827,7 @@
               </div>
 
               <div id="component-options-loss" class="model-component"
-              style="top: 240px; left: 727px">
+              style="top: 220px; left: 667px">
                 <div class="config-item">
                   <paper-dropdown-menu no-animations no-label-float>
                     <paper-listbox attr-for-selected="value"
@@ -830,7 +844,7 @@
               </div>
 
               <div id="component-d-loop" class="model-component"
-                style="top: 24px; left: 590px">
+                style="top: 4px; left: 530px">
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
@@ -853,7 +867,7 @@
               </div>
 
               <div id="component-g-loop" class="model-component"
-                style="top: 452px; left: 590px">
+                style="top: 422px; left: 530px">
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
@@ -877,7 +891,7 @@
 
               <div id="component-discriminator-learning" 
                 class="model-component"
-                style="top: 75px; left: 495px">
+                style="top: 55px; left: 440px">
                 <div class="config-item" style="width: 120px">
                   <div class="up-down-buttons">
                     <label>Optimizer:</label>
@@ -919,7 +933,7 @@
               </div>
 
               <div id="component-generator-learning" class="model-component"
-                style="top: 365px; left: 205px">
+                style="top: 335px; left: 180px">
                 <div class="config-item" style="width: 120px">
                   <div class="up-down-buttons">
                     <label>Optimizer:</label>
@@ -961,13 +975,13 @@
               </div>
 
               <div id="component-true-prediction" class="model-component"
-                style="top: 156px; left: 575px">
+                style="top: 136px; left: 525px">
                 <div class="component-sub-label">Real</div>
                 <svg id="svg-true-prediction"></svg>
               </div>
 
               <div id="component-generated-prediction" class="model-component"
-                style="top: 250px; left: 575px">
+                style="top: 230px; left: 525px">
                 <div class="component-sub-label">Fake</div>
                 <svg id="svg-generated-prediction"></svg>
                 <div class="component-label">Prediction of<br />Samples</div>
@@ -975,7 +989,7 @@
 
               <div id="component-discriminator"
                 class="model-component model-component-model"
-                style="top: 156px; left: 412px">
+                style="top: 136px; left: 372px">
                 <svg id="svg-discriminator-output"></svg>
                 <div class="component-label">Discriminator
                   <div id="overlap-toggle" class="checkbox-toggle">
@@ -987,7 +1001,7 @@
 
               <div id="component-options-discriminator" 
                 class="model-component-options"
-                style="top: 337px; left: 410px">
+                style="top: 307px; left: 365px">
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
@@ -1025,7 +1039,7 @@
 
               <div id="component-generator"
                 class="model-component model-component-model"
-                style="top: 156px; left: 122px">
+                style="top: 136px; left: 102px">
                   <svg id="svg-generator-manifold"></svg>
                   <div class="component-label">Generator
                     <div id="manifold-toggle" class="checkbox-toggle"
@@ -1037,7 +1051,7 @@
 
               <div id="component-options-generator" 
                 class="model-component-options"
-                style="top: 337px; left: 120px">
+                style="top: 307px; left: 95px">
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon"
@@ -1075,12 +1089,12 @@
 
               <div id="component-discriminator-gradients" 
                 class="model-component"
-                style="top: 27px; left: 470px">
+                style="top: 7px; left: 430px">
                 <div class="component-label">Gradients</div>
               </div>
 
               <div id="component-generator-gradients" class="model-component"
-                style="top: 420px; left: 285px">
+                style="top: 390px; left: 255px">
                 <svg id="svg-generator-gradients"></svg>
                 <div class="component-label">Gradients
                   <div id="g-gradients-toggle" class="checkbox-toggle"
@@ -1092,7 +1106,7 @@
               </div>
 
               <div id="component-true-distribution" class="model-component"
-                style="top: 125px; left: 315px; width: 65px;">
+                style="top: 105px; left: 285px; width: 65px;">
                 <div>
                   <div id="t-contour-toggle" class="checkbox-toggle"
                     title="show/hide true distribution's contour"
@@ -1103,7 +1117,7 @@
               </div>
 
               <div id="component-true-samples" class="model-component"
-                style="top: 156px; left: 285px">
+                style="top: 136px; left: 255px">
                 <div class="component-sub-label">Real
                   <div id="t-samples-toggle" class="checkbox-toggle"
                     title="show/hide true samples">
@@ -1114,7 +1128,7 @@
               </div>
 
               <div id="component-generated-samples" class="model-component"
-                style="top: 250px; left: 285px">
+                style="top: 230px; left: 255px">
                 <div class="component-sub-label">Fake
                   <div id="g-samples-toggle" class="checkbox-toggle"
                     title="show/hide generated samples">
@@ -1126,13 +1140,13 @@
               </div>
 
               <div id="component-noise" class="model-component"
-                style="top: 250px; left: -5px">
+                style="top: 230px; left: -15px">
                 <svg id="svg-noise"></svg>
                 <div class="component-label">Noise</div>
               </div>
 
               <div id="component-options-noise" class="model-component-options"
-                style="top: 333px; left: 15px">
+                style="top: 303px; left: 0px">
                 <div class="config-item" style="width: 80px">
                   <paper-dropdown-menu no-animations no-label-float>
                     <paper-listbox attr-for-selected="value" 
@@ -1152,54 +1166,54 @@
             <div id="tooltips">
               <div id="tooltip-d-generated-samples" 
                 class="tooltip tooltip-for-d"
-                style="top: -10px; left: 0px">
+                style="top: 0; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
               </div>
               <div id="tooltip-d-prediction" class="tooltip tooltip-for-d"
-                style="top: -10px; left: 160px">
+                style="top: 0; left: 150px">
                 <div class="tooltip-number">2</div>
                 Discriminator classifies samples
               </div>
               <div id="tooltip-d-loss" class="tooltip tooltip-for-d"
-                style="top: -10px; left: 320px">
+                style="top: 0; left: 300px">
                 <div class="tooltip-number">3</div>
                 Computes discriminator loss
               </div>
               <div id="tooltip-d-gradients" class="tooltip tooltip-for-d"
-                style="top: -10px; left: 480px">
+                style="top: 0; left: 450px">
                 <div class="tooltip-number">4</div>
                 Computes discriminator gradients
               </div>
               <div id="tooltip-update-discriminator" 
                 class="tooltip tooltip-for-d"
-                style="top: -10px; left: 640px">
+                style="top: 0; left: 600px">
                 <div class="tooltip-number">5</div>
                 Updates discriminator based on gradients
               </div>
               <div id="tooltip-g-generated-samples" 
                 class="tooltip tooltip-for-g"
-                style="top: 510px; left: 0px">
+                style="top: 500px; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
               </div>
               <div id="tooltip-g-prediction" class="tooltip tooltip-for-g"
-                style="top: 510px; left: 160px">
+                style="top: 500px; left: 150px">
                 <div class="tooltip-number">2</div>
                 Discriminator classifies fake samples only
               </div>
               <div id="tooltip-g-loss" class="tooltip tooltip-for-g"
-                style="top: 510px; left: 320px">
+                style="top: 500px; left: 300px">
                 <div class="tooltip-number">3</div>
                 Computes generator loss
               </div>
               <div id="tooltip-g-gradients" class="tooltip tooltip-for-g"
-                style="top: 510px; left: 480px">
+                style="top: 500px; left: 450px">
                 <div class="tooltip-number">4</div>
                 Computes generator gradients
               </div>
               <div id="tooltip-update-generator" class="tooltip tooltip-for-g"
-                style="top: 510px; left: 640px">
+                style="top: 500px; left: 600px">
                 <div class="tooltip-number">5</div>
                 Updates generator based on gradients
               </div>
@@ -1236,52 +1250,47 @@ green toggle switches on the left.">
                 </g>
               </g>
             </svg>
-            <svg id="vis-descriptions" width="400" height="220">
+            <svg id="vis-descriptions" width="400" height="180">
               <g transform="translate(5,20)">
                 <text transform="translate(0,0)">
                   Each dot is a 2D data sample:
                 </text>
                 <circle class="true-dot" 
-                  r="2" transform="translate(5,15)"></circle>
-                <text transform="translate(15,19)">Real samples</text>
+                  r="2" transform="translate(5,13)"></circle>
+                <text transform="translate(15,17)">Real samples</text>
                 <circle class="generated-dot" 
-                  r="2" transform="translate(5,34)"></circle>
-                <text transform="translate(15,38)">Fake samples</text>
+                  r="2" transform="translate(5,30)"></circle>
+                <text transform="translate(15,34)">Fake samples</text>
               </g>
-              <g transform="translate(5,80)">
+              <g transform="translate(5,69)">
                 <text transform="translate(0,10)">
                   Background colors of grid cells represent 
                   discriminator's predictions:
                 </text>
                 <rect class="true-dot" width="10" height="10" 
-                  transform="translate(1,20)"
+                  transform="translate(1,18)"
                   style="fill-opacity: 0.75"></rect>
-                <text transform="translate(16,29)">
+                <text transform="translate(16,27)">
                   Samples in this cell seem real.
                 </text>
-                <rect width="10" height="10" transform="translate(1,39)"
-                style="fill: #e2e2e2"></rect>
-                <text transform="translate(16,48)">
-                  Difficult to determine whether samples are real or fake.
-                </text>
                 <rect class="generated-dot" width="10" height="10" 
-                  transform="translate(1,58)"
+                  transform="translate(1,35)"
                   style="fill-opacity: 0.75"></rect>
-                <text transform="translate(16,67)">
+                <text transform="translate(16,44)">
                   Samples in this cell seem fake.
                 </text>
               </g>
-              <g transform="translate(5,180)">
+              <g transform="translate(5,138)">
                 <text transform="translate(0,0)">
                   Lines from fake samples represent gradients for generator:
                 </text>
                 <circle class="generated-dot" 
-                  r="2" transform="translate(3,18)"></circle>
-                <text transform="translate(15,19)">
+                  r="2" transform="translate(3,16)"></circle>
+                <text transform="translate(15,17)">
                   This sample needs to move upper right 
                   to decrease generator's loss.
                 </text>
-                <polygon class="gradient-generated" transform="translate(3,18)"
+                <polygon class="gradient-generated" transform="translate(3,16)"
                   points="0,0 1,1 10,-10 -1,-1"></polygon>
               </g>
             </svg>
@@ -1304,11 +1313,11 @@ green toggle switches on the left.">
           <div class="panel-title">Metrics</div>
 
           <div id="chart-container">
-            <canvas id="cost-chart" width="200" height="200"></canvas>
-            <canvas id="eval-chart" width="200" height="200"></canvas>
+            <canvas id="cost-chart" width="180" height="180"></canvas>
+            <canvas id="eval-chart" width="180" height="180"></canvas>
           </div>
         </div>
       </div>
-    </div>
+    </div>    
   </template>
 </dom-module>

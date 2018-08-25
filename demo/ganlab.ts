@@ -376,8 +376,8 @@ class GANLab extends GANLabPolymer {
   
     // Visualization.
     this.plotSizePx = 400;
-    this.mediumPlotSizePx = 150;
-    this.smallPlotSizePx = 60;
+    this.mediumPlotSizePx = 140;
+    this.smallPlotSizePx = 50;
 
     this.colorScale = interpolatePRGn;
 
