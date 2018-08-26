@@ -369,52 +369,20 @@
     .checkbox-toggle {
       right: 26px;
       position: absolute;
-      top: -2px;
+      top: -1px;
     }
 
     .model-component-model .checkbox-toggle {
       right: -8px;
-      top: 1px;
+      top: 0;
     }
 
-    .checkbox-toggle input {
-      -webkit-appearance: none;
-      appearance: none;
-      background-color: rgb(216, 216, 216);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      display: inline-block;
-      height: 7px;
-      outline: none;
-      overflow: hidden;
-      position: relative;
-      transition: background-color ease 0.3s;
-      width: 14px;
-    }
-
-    .checkbox-toggle input:before {
-      background-color: #fff;
-      border-radius: 50%;
-      color: #fff;
-      content: '';
-      display: block;
-      height: 5px;
-      left: 1px;
-      position: absolute;
-      top: 1px;
-      transition: all 0.3s;
-      width: 5px;
-      z-index: 2;
-    }
-
-    .checkbox-toggle input:checked {
-      background-color: rgb(236, 236, 236);
-    }
-
-    .checkbox-toggle input:checked:before {
-      background-color: rgb(128, 224, 99);
-      left: 8px;
+    #model-visualization-container paper-checkbox {
+      --paper-checkbox-checked-color: #999;
+      --paper-checkbox-label-color: #444;
+      --paper-checkbox-label-spacing: 2px;
+      --paper-checkbox-size: 10px;
+      --paper-checkbox-unchecked-color: #999;
     }
 
     .up-down-buttons {
@@ -451,6 +419,28 @@
         color: #666;
         font-size: 12px;
       };
+    }
+
+    #layers-descriptions {
+      left: 3px;
+      position: absolute;
+      top: 410px;
+    }
+
+    .layers-descriptions-section {
+      color: #888;
+      font-size: 11.5px;
+      line-height: 16px;
+      margin-bottom: 12px;
+    }
+
+    #layers-descriptions paper-checkbox {
+      margin-left: 3px;
+      --paper-checkbox-checked-color: #999;
+      --paper-checkbox-label-color: #444;
+      --paper-checkbox-label-spacing: 2px;
+      --paper-checkbox-size: 11px;
+      --paper-checkbox-unchecked-color: #999;
     }
 
     #drawing-container {
@@ -506,7 +496,7 @@
       stroke-width: 0;
     }
 
-    #svg-generator-gradients .gradient-generated {
+    #layers-descriptions .gradient-generated {
       stroke: rgba(196, 20, 219, 0.5);
       stroke-width: 1;
     }
@@ -993,8 +983,9 @@
                 <svg id="svg-discriminator-output"></svg>
                 <div class="component-label">Discriminator
                   <div id="overlap-toggle" class="checkbox-toggle">
-                    <input type="checkbox" id="overlap-plots" checked
-                      title="show/hide discriminator's prediction" />
+                    <paper-checkbox type="checkbox" id="overlap-plots" checked
+                      title="show/hide discriminator's classification">
+                    </paper-checkbox>
                   </div>
                 </div>
               </div>
@@ -1044,7 +1035,8 @@
                   <div class="component-label">Generator
                     <div id="manifold-toggle" class="checkbox-toggle"
                       title="show/hide generator's manifold">
-                      <input type="checkbox" id="enable-manifold" />
+                      <paper-checkbox type="checkbox" id="enable-manifold">
+                      </paper-checkbox>
                     </div>
                   </div>
                 </div>
@@ -1100,18 +1092,21 @@
                   <div id="g-gradients-toggle" class="checkbox-toggle"
                     title="show/hide gradients for generator"
                     style="right: 11px; top: 1px">
-                    <input type="checkbox" id="show-g-gradients" checked />
+                    <paper-checkbox type="checkbox" id="show-g-gradients" 
+                      checked>
+                    </paper-checkbox>
                   </div>
                 </div>
               </div>
 
               <div id="component-true-distribution" class="model-component"
-                style="top: 105px; left: 285px; width: 65px;">
+                style="top: 105px; left: 285px; width: 55px;">
                 <div>
                   <div id="t-contour-toggle" class="checkbox-toggle"
-                    title="show/hide true distribution's contour"
+                    title="show/hide real samples' density contour"
                     style="right: 1px; top: 6px">
-                    <input type="checkbox" id="show-t-contour" />
+                    <paper-checkbox type="checkbox" id="show-t-contour">
+                    </paper-checkbox>
                   </div>
                 </div>
               </div>
@@ -1120,8 +1115,10 @@
                 style="top: 136px; left: 255px">
                 <div class="component-sub-label">Real
                   <div id="t-samples-toggle" class="checkbox-toggle"
-                    title="show/hide true samples">
-                    <input type="checkbox" id="show-t-samples" checked />
+                    title="show/hide real samples">
+                    <paper-checkbox type="checkbox" id="show-t-samples" 
+                      checked>
+                    </paper-checkbox>
                   </div>
                 </div>
                 <svg id="svg-true-samples"></svg>
@@ -1131,8 +1128,10 @@
                 style="top: 230px; left: 255px">
                 <div class="component-sub-label">Fake
                   <div id="g-samples-toggle" class="checkbox-toggle"
-                    title="show/hide generated samples">
-                    <input type="checkbox" id="show-g-samples" checked />
+                    title="show/hide fake samples">
+                    <paper-checkbox type="checkbox" id="show-g-samples" 
+                      checked>
+                    </paper-checkbox>
                   </div>
                 </div>
                 <svg id="svg-generated-samples"></svg>
@@ -1226,8 +1225,8 @@
         <div id="visualization-container" class="panel-item">
           <div class="panel-title"
             title="Visualizes components in the model overview graph as 
-multiple layers. The six layers can be turned on or off using 
-green toggle switches on the left.">
+multiple layers. The layers can be turned on or off using 
+green toggle switches on the left or checkboxes on the bottom.">
             Layered Distributions
           </div>
 
@@ -1250,50 +1249,62 @@ green toggle switches on the left.">
                 </g>
               </g>
             </svg>
-            <svg id="vis-descriptions" width="400" height="180">
-              <g transform="translate(5,20)">
-                <text transform="translate(0,0)">
-                  Each dot is a 2D data sample:
-                </text>
-                <circle class="true-dot" 
-                  r="2" transform="translate(5,13)"></circle>
-                <text transform="translate(15,17)">Real samples</text>
-                <circle class="generated-dot" 
-                  r="2" transform="translate(5,30)"></circle>
-                <text transform="translate(15,34)">Fake samples</text>
-              </g>
-              <g transform="translate(5,69)">
-                <text transform="translate(0,10)">
-                  Background colors of grid cells represent 
-                  discriminator's predictions:
-                </text>
-                <rect class="true-dot" width="10" height="10" 
-                  transform="translate(1,18)"
-                  style="fill-opacity: 0.75"></rect>
-                <text transform="translate(16,27)">
-                  Samples in this cell seem real.
-                </text>
-                <rect class="generated-dot" width="10" height="10" 
-                  transform="translate(1,35)"
-                  style="fill-opacity: 0.75"></rect>
-                <text transform="translate(16,44)">
-                  Samples in this cell seem fake.
-                </text>
-              </g>
-              <g transform="translate(5,138)">
-                <text transform="translate(0,0)">
-                  Lines from fake samples represent gradients for generator:
-                </text>
-                <circle class="generated-dot" 
-                  r="2" transform="translate(3,16)"></circle>
-                <text transform="translate(15,17)">
-                  This sample needs to move upper right 
-                  to decrease generator's loss.
-                </text>
-                <polygon class="gradient-generated" transform="translate(3,16)"
-                  points="0,0 1,1 10,-10 -1,-1"></polygon>
-              </g>
-            </svg>
+
+            <div id="layers-descriptions">
+              <div class="layers-descriptions-section">
+                Each dot is a 2D data sample:                
+                <paper-checkbox id="toggle-right-real-samples" checked>
+                  <span style="color: rgb(0, 136, 55);">Real samples</span>
+                </paper-checkbox>
+                <paper-checkbox id="toggle-right-fake-samples" checked>
+                  <span style="color: rgb(123, 50, 148);">Fake samples</span>
+                </paper-checkbox>
+              </div>
+              <div class="layers-descriptions-section">
+                Background colors of grid cells represent
+                <paper-checkbox id="toggle-right-discriminator" checked>
+                  <span style="color: rgb(64, 128, 247);">
+                    Discriminator</span>'s classifications:           
+                </paper-checkbox>
+                <br />
+                <svg width="10" height="12">
+                  <rect class="true-dot" width="10" height="10"
+                    style="fill-opacity: 0.75"></rect>
+                </svg>
+                Samples in this cell seem real;
+                <svg width="10" height="12">
+                  <rect class="generated-dot" width="10" height="10"
+                    style="fill-opacity: 0.75"></rect>
+                </svg>
+                Samples in this cell seem fake.
+              </div>
+              <div class="layers-descriptions-section">
+                <strong>Manifold</strong> represents
+                <paper-checkbox id="toggle-right-generator">
+                  <span style="color: rgb(170, 79, 192);">
+                    Generator</span>'s transformation results from noise space:
+                </paper-checkbox>
+                <br />
+                Opacity encodes density:
+                darker purple means more samples in smaller area.
+              </div>
+              <div class="layers-descriptions-section">
+                Pink lines from fake samples represent 
+                <paper-checkbox id="toggle-right-gradients" checked>
+                  Gradients for generator:
+                </paper-checkbox>
+                <br />
+                <svg width="12" height="12">
+                  <circle class="generated-dot" r="2"
+                    transform="translate(2,10)"></circle>
+                  <polygon class="gradient-generated"
+                    transform="translate(2,10)"
+                    points="0,0 1,1 10,-10 -1,-1"></polygon>
+                </svg>                
+                This sample needs to move upper right 
+                to decrease generator's loss.
+              </div>
+            </div>
 
             <div id="drawing-container">
               <canvas id="input-drawing-canvas" 

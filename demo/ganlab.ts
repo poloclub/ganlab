@@ -285,49 +285,65 @@ class GANLab extends GANLabPolymer {
       });
 
     // Checkbox toggles.
-    this.querySelector('#overlap-plots')!.addEventListener(
+    const checkboxList = [
+      {
+        graph: '#overlap-plots', 
+        description: '#toggle-right-discriminator', 
+        layer: '#vis-discriminator-output'
+      },
+      {
+        graph: '#enable-manifold', 
+        description: '#toggle-right-generator',
+        layer: '#vis-manifold'
+      },
+      {
+        graph: '#show-t-samples', 
+        description: '#toggle-right-real-samples', 
+        layer: '#vis-true-samples'
+      },
+      {
+        graph: '#show-g-samples', 
+        description: '#toggle-right-fake-samples', 
+        layer: '#vis-generated-samples'
+      },
+      {
+        graph: '#show-g-gradients', 
+        description: '#toggle-right-gradients', 
+        layer: '#vis-generator-gradients'
+      }
+    ];
+    checkboxList.forEach(layer => {      
+      this.querySelector(layer.graph)!.addEventListener(
       'change', (event: Event) => {
         const container =
-          this.querySelector('#vis-discriminator-output') as SVGGElement;
+          this.querySelector(layer.layer) as SVGGElement;
         // tslint:disable-next-line:no-any
         container.style.visibility =
           (event.target as any).checked ? 'visible' : 'hidden';
-      });
-    this.querySelector('#enable-manifold')!.addEventListener(
-      'change', (event: Event) => {
-        const container = this.querySelector('#vis-manifold') as SVGGElement;
+          
+        const element = 
+          this.querySelector(layer.description) as HTMLInputElement;
         // tslint:disable-next-line:no-any
-        container.style.visibility =
-          (event.target as any).checked ? 'visible' : 'hidden';
+        element.checked = (event.target as any).checked;
       });
-    this.querySelector('#show-g-samples')!.addEventListener(
+      this.querySelector(layer.description)!.addEventListener(
       'change', (event: Event) => {
         const container =
-          this.querySelector('#vis-generated-samples') as SVGGElement;
+          this.querySelector(layer.layer) as SVGGElement;
         // tslint:disable-next-line:no-any
         container.style.visibility =
           (event.target as any).checked ? 'visible' : 'hidden';
+          
+          const element = 
+            this.querySelector(layer.graph) as HTMLInputElement;
+          // tslint:disable-next-line:no-any
+          element.checked = (event.target as any).checked;
       });
-    this.querySelector('#show-t-samples')!.addEventListener(
-      'change', (event: Event) => {
-        const container =
-          this.querySelector('#vis-true-samples') as SVGGElement;
-        // tslint:disable-next-line:no-any
-        container.style.visibility =
-          (event.target as any).checked ? 'visible' : 'hidden';
-      });
+    });
     this.querySelector('#show-t-contour')!.addEventListener(
       'change', (event: Event) => {
         const container =
           this.querySelector('#vis-true-samples-contour') as SVGGElement;
-        // tslint:disable-next-line:no-any
-        container.style.visibility =
-          (event.target as any).checked ? 'visible' : 'hidden';
-      });
-    this.querySelector('#show-g-gradients')!.addEventListener(
-      'change', (event: Event) => {
-        const container =
-          this.querySelector('#vis-generator-gradients') as SVGGElement;
         // tslint:disable-next-line:no-any
         container.style.visibility =
           (event.target as any).checked ? 'visible' : 'hidden';
