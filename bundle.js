@@ -210,38 +210,55 @@ class GANLab extends GANLabPolymer {
             this.createExperiment();
         });
         // Checkbox toggles.
-        this.querySelector('#overlap-plots').addEventListener('change', (event) => {
-            const container = this.querySelector('#vis-discriminator-output');
-            // tslint:disable-next-line:no-any
-            container.style.visibility =
-                event.target.checked ? 'visible' : 'hidden';
-        });
-        this.querySelector('#enable-manifold').addEventListener('change', (event) => {
-            const container = this.querySelector('#vis-manifold');
-            // tslint:disable-next-line:no-any
-            container.style.visibility =
-                event.target.checked ? 'visible' : 'hidden';
-        });
-        this.querySelector('#show-g-samples').addEventListener('change', (event) => {
-            const container = this.querySelector('#vis-generated-samples');
-            // tslint:disable-next-line:no-any
-            container.style.visibility =
-                event.target.checked ? 'visible' : 'hidden';
-        });
-        this.querySelector('#show-t-samples').addEventListener('change', (event) => {
-            const container = this.querySelector('#vis-true-samples');
-            // tslint:disable-next-line:no-any
-            container.style.visibility =
-                event.target.checked ? 'visible' : 'hidden';
+        const checkboxList = [
+            {
+                graph: '#overlap-plots',
+                description: '#toggle-right-discriminator',
+                layer: '#vis-discriminator-output'
+            },
+            {
+                graph: '#enable-manifold',
+                description: '#toggle-right-generator',
+                layer: '#vis-manifold'
+            },
+            {
+                graph: '#show-t-samples',
+                description: '#toggle-right-real-samples',
+                layer: '#vis-true-samples'
+            },
+            {
+                graph: '#show-g-samples',
+                description: '#toggle-right-fake-samples',
+                layer: '#vis-generated-samples'
+            },
+            {
+                graph: '#show-g-gradients',
+                description: '#toggle-right-gradients',
+                layer: '#vis-generator-gradients'
+            }
+        ];
+        checkboxList.forEach(layer => {
+            this.querySelector(layer.graph).addEventListener('change', (event) => {
+                const container = this.querySelector(layer.layer);
+                // tslint:disable-next-line:no-any
+                container.style.visibility =
+                    event.target.checked ? 'visible' : 'hidden';
+                const element = this.querySelector(layer.description);
+                // tslint:disable-next-line:no-any
+                element.checked = event.target.checked;
+            });
+            this.querySelector(layer.description).addEventListener('change', (event) => {
+                const container = this.querySelector(layer.layer);
+                // tslint:disable-next-line:no-any
+                container.style.visibility =
+                    event.target.checked ? 'visible' : 'hidden';
+                const element = this.querySelector(layer.graph);
+                // tslint:disable-next-line:no-any
+                element.checked = event.target.checked;
+            });
         });
         this.querySelector('#show-t-contour').addEventListener('change', (event) => {
             const container = this.querySelector('#vis-true-samples-contour');
-            // tslint:disable-next-line:no-any
-            container.style.visibility =
-                event.target.checked ? 'visible' : 'hidden';
-        });
-        this.querySelector('#show-g-gradients').addEventListener('change', (event) => {
-            const container = this.querySelector('#vis-generator-gradients');
             // tslint:disable-next-line:no-any
             container.style.visibility =
                 event.target.checked ? 'visible' : 'hidden';
@@ -271,8 +288,8 @@ class GANLab extends GANLabPolymer {
         document.getElementById('save-model').addEventListener('click', () => this.onClickSaveModelButton());
         // Visualization.
         this.plotSizePx = 400;
-        this.mediumPlotSizePx = 150;
-        this.smallPlotSizePx = 60;
+        this.mediumPlotSizePx = 140;
+        this.smallPlotSizePx = 50;
         this.colorScale = d3_scale_chromatic_1.interpolatePRGn;
         this.gDotsElementList = [
             '#vis-generated-samples',

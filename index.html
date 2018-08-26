@@ -20745,22 +20745,23 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
 
 <dom-module id="gan-lab">
   <style>
-    #gan-lab-container {
-      background-color: #f7f7f7;
-      width: 100%;
+    .panel-container {
+      display: flex;
+      margin-left: auto;
+      margin-right: auto;
+      justify-content: space-between;
+      width: 1402px;
     }
 
     #top-bar {
-      align-items: center;
       background-color: #183D4E;
       color: #f5f5f5;
-      display: flex;
       font-size: 16px;
       padding: 6px 30px 5px;
     }
 
-    #tool-description {
-      flex-grow: 2;
+    #top-bar-panel-container {
+      align-items: center;
     }
 
     #source-link a {
@@ -20770,12 +20771,14 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     }
 
     #top-panel {
-      align-items: center;
       background-color: #eee;
       border-bottom: 2px solid #ddd;
-      display: flex;
       font-size: 30px;
       padding: 10px 30px 9px;
+    }
+
+    #top-panel-container {
+      align-items: center;
     }
 
     .top-panel-item {
@@ -20903,7 +20906,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     }
 
     #iteration {
-      flex-grow: 2;
+      flex-grow: 1;
       font-size: 14px;
       margin-left: 20px;
     }
@@ -20924,12 +20927,12 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     }
 
     #main-panel {
-      display: flex;
-      font-size: 13px;
+      background-color: #f7f7f7;
+      border-bottom: 2px solid #eee;
     }
-    
+
     .panel-item {      
-      padding: 15px 25px;
+      padding: 15px 20px;
     }
 
     .panel-title {
@@ -20949,8 +20952,9 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     #model-visualization-container {
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 1px 0 0;
-      min-height: 600px;
-      min-width: 800px;
+      min-height: 570px;
+      min-width: 740px;
+      padding-left: 0;
     }
 
     #model-vis-content-container {
@@ -20959,9 +20963,9 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
 
     #model-vis-svg,
     #model-vis-div {
-      height: 600px;
+      height: 570px;
       position: absolute;
-      width: 800px;
+      width: 740px;
     }
 
     #model-vis-svg {
@@ -21003,25 +21007,25 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
       padding-top: 5px;
       position: absolute;
       text-align: center;
-      width: 120px;
+      width: 110px;
     }
 
     .model-component svg {
       background-color: #fff;
       border: 1px solid #eee;
       border-radius: 3px;
-      height: 60px;
-      width: 60px;
+      height: 50px;
+      width: 50px;
     }
 
     .model-component-model {
-      width: 150px;
+      width: 140px;
     }
 
     .model-component-model svg {
       border: 3px solid rgb(170, 170, 170);
-      height: 150px;
-      width: 150px;
+      height: 140px;
+      width: 140px;
     }
 
     .model-component-options {
@@ -21099,52 +21103,20 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     .checkbox-toggle {
       right: 26px;
       position: absolute;
-      top: -2px;
+      top: -1px;
     }
 
     .model-component-model .checkbox-toggle {
       right: -8px;
-      top: 1px;
+      top: 0;
     }
 
-    .checkbox-toggle input {
-      -webkit-appearance: none;
-      appearance: none;
-      background-color: rgb(216, 216, 216);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      display: inline-block;
-      height: 7px;
-      outline: none;
-      overflow: hidden;
-      position: relative;
-      transition: background-color ease 0.3s;
-      width: 14px;
-    }
-
-    .checkbox-toggle input:before {
-      background-color: #fff;
-      border-radius: 50%;
-      color: #fff;
-      content: '';
-      display: block;
-      height: 5px;
-      left: 1px;
-      position: absolute;
-      top: 1px;
-      transition: all 0.3s;
-      width: 5px;
-      z-index: 2;
-    }
-
-    .checkbox-toggle input:checked {
-      background-color: rgb(236, 236, 236);
-    }
-
-    .checkbox-toggle input:checked:before {
-      background-color: rgb(128, 224, 99);
-      left: 8px;
+    #model-visualization-container paper-checkbox {
+      --paper-checkbox-checked-color: #999;
+      --paper-checkbox-label-color: #444;
+      --paper-checkbox-label-spacing: 2px;
+      --paper-checkbox-size: 10px;
+      --paper-checkbox-unchecked-color: #999;
     }
 
     .up-down-buttons {
@@ -21181,6 +21153,28 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
         color: #666;
         font-size: 12px;
       };
+    }
+
+    #layers-descriptions {
+      left: 3px;
+      position: absolute;
+      top: 410px;
+    }
+
+    .layers-descriptions-section {
+      color: #888;
+      font-size: 11.5px;
+      line-height: 16px;
+      margin-bottom: 12px;
+    }
+
+    #layers-descriptions paper-checkbox {
+      margin-left: 3px;
+      --paper-checkbox-checked-color: #999;
+      --paper-checkbox-label-color: #444;
+      --paper-checkbox-label-spacing: 2px;
+      --paper-checkbox-size: 11px;
+      --paper-checkbox-unchecked-color: #999;
     }
 
     #drawing-container {
@@ -21236,7 +21230,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
       stroke-width: 0;
     }
 
-    #svg-generator-gradients .gradient-generated {
+    #layers-descriptions .gradient-generated {
       stroke: rgba(196, 20, 219, 0.5);
       stroke-width: 1;
     }
@@ -21300,14 +21294,19 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     }
 
     #tooltips {
+      background-color: #f7f7f7;
       display: none;
+      height: 40px;
+      position: absolute;
+      top: -30px;
+      width: 100%;
     }
 
     .tooltip-number {
       font-size: 24px;
       height: 10px;
       left: 5px;
-      padding: 3px;
+      padding: 3px 2px;
       position: absolute;
       text-align: center;
       top: 10px;
@@ -21317,7 +21316,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
       color: white;
       font-size: 12px;
       line-height: 13px;
-      padding: 7px 6px 7px 29px;
+      padding: 7px 0 7px 25px;
       position: absolute;
       width: 125px;
     }
@@ -21345,7 +21344,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     }
 
     #visualization-container {
-      min-height: 660px;
+      min-height: 610px;
       min-width: 400px;
     }
 
@@ -21370,12 +21369,13 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
     #charts-panel {
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 0 0 1px;
-      width: 200px;
+      width: 180px;
+      padding-right: 0;
     }    
   </style>
-  <template>
-    <div id="gan-lab-container">
-      <div id="top-bar">
+  <template>    
+    <div id="top-bar">
+      <div id="top-bar-panel-container" class="panel-container">
         <div id="tool-description">
           Play with Generated Adversarial Networks (GANs) in your browser!          
         </div>
@@ -21386,8 +21386,10 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
           </a>
         </div>
       </div>
-      
-      <div id="top-panel">
+    </div>
+    
+    <div id="top-panel">
+      <div id="top-panel-container" class="panel-container">
         <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
 
         <div id="distribution-selection" class="top-panel-item">
@@ -21456,8 +21458,10 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
           </button>
         </div>
       </div>
+    </div>
 
-      <div id="main-panel">
+    <div id="main-panel">
+      <div id="main-panel-container" class="panel-container">
         <div id="model-visualization-container" class="panel-item">
           <div class="panel-title" style="padding-left: 5px;" title="Shows the architecture of a model and data flow">
             Model Overview Graph
@@ -21468,26 +21472,26 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
 
           <div id="model-vis-content-container">
             <svg id="model-vis-svg" class="">
-              <path d="M86,285 L122,285" id="arrow-g-forward-i" class="d-update-flow g-update-flow"></path>
-              <path d="M278,285 L314,285" id="arrow-g-forward-o" class="d-update-flow g-update-flow"></path>
-              <path d="M376,195 L412,195" id="arrow-t-d-forward-i" class="d-update-flow"></path>
-              <path d="M568,195 L604,195" id="arrow-t-d-forward-o" class="d-update-flow"></path>
-              <path d="M376,285 L412,285" id="arrow-g-d-forward-i" class="d-update-flow g-update-flow"></path>
-              <path d="M568,285 L604,285" id="arrow-g-d-forward-o" class="d-update-flow g-update-flow"></path>
+              <path d="M66,260 L102,260" id="arrow-g-forward-i" class="d-update-flow g-update-flow"></path>
+              <path d="M248,260 L284,260" id="arrow-g-forward-o" class="d-update-flow g-update-flow"></path>
+              <path d="M336,166 L372,166" id="arrow-t-d-forward-i" class="d-update-flow"></path>
+              <path d="M518,166 L554,166" id="arrow-t-d-forward-o" class="d-update-flow"></path>
+              <path d="M336,260 L372,260" id="arrow-g-d-forward-i" class="d-update-flow g-update-flow"></path>
+              <path d="M518,260 L554,260" id="arrow-g-d-forward-o" class="d-update-flow g-update-flow"></path>
 
-              <path d="M665,195 C685,195 675,240 700,240" id="arrow-t-prediction-d-loss" class="d-update-flow"></path>
-              <path d="M665,285 C685,285 675,240 700,240" id="arrow-g-prediction-d-loss" class="d-update-flow"></path>
-              <path d="M700,240 L710,240 a10,10 0 0 0 10,-10
-                L720,60 a10,10 0 0 0 -10,-10
-                L500,50 a10,10 0 0 0 -10,10 L490,161" id="arrow-d-loss-d" class="d-update-flow"></path>
+              <path d="M605,166 C625,166 615,213 640,213" id="arrow-t-prediction-d-loss" class="d-update-flow"></path>
+              <path d="M605,260 C625,260 615,213 640,213" id="arrow-g-prediction-d-loss" class="d-update-flow"></path>
+              <path d="M640,213 L650,213 a10,10 0 0 0 10,-10
+                L660,40 a10,10 0 0 0 -10,-10
+                L445,30 a10,10 0 0 0 -10,10 L435,141" id="arrow-d-loss-d" class="d-update-flow"></path>
 
-              <path d="M665,285 L710,285 a10,10 0 0 1 10,10
-                L720,445 a10,10 0 0 1 -10,10 L376,455" id="arrow-g-loss-g-1" class="g-update-flow"></path>
-              <path d="M314,455 L210,455 a10,10 0 0 1 -10,-10 L200,333" id="arrow-g-loss-g-2" class="g-update-flow"></path>
+              <path d="M605,260 L650,260 a10,10 0 0 1 10,10
+                L660,415 a10,10 0 0 1 -10,10 L336,425" id="arrow-g-loss-g-1" class="g-update-flow"></path>
+              <path d="M289,425 L185,425 a10,10 0 0 1 -10,-10 L175,303" id="arrow-g-loss-g-2" class="g-update-flow"></path>
             </svg>
 
             <div id="model-vis-div">
-              <div id="component-d-loss" class="model-component" style="top: 180px; left: 727px">
+              <div id="component-d-loss" class="model-component" style="top: 160px; left: 667px">
                 <div id="d-loss-bar" class="loss-bar" title=""></div>
                 <div class="component-loss-label">Discriminator<br>loss</div>
                 <div class="component-tooltip">
@@ -21495,7 +21499,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-g-loss" class="model-component" style="top: 295px; left: 727px">
+              <div id="component-g-loss" class="model-component" style="top: 275px; left: 667px">
                 <div id="g-loss-bar" class="loss-bar" title=""></div>
                 <div class="component-loss-label">Generator<br>loss</div>
                 <div class="component-tooltip">
@@ -21503,7 +21507,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-options-loss" class="model-component" style="top: 240px; left: 727px">
+              <div id="component-options-loss" class="model-component" style="top: 220px; left: 667px">
                 <div class="config-item">
                   <paper-dropdown-menu no-animations="" no-label-float="">
                     <paper-listbox attr-for-selected="value" id="loss-type-dropdown" class="dropdown-content" selected="{{lossType}}">
@@ -21517,7 +21521,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-d-loop" class="model-component" style="top: 24px; left: 590px">
+              <div id="component-d-loop" class="model-component" style="top: 4px; left: 530px">
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-add-button" title="Increase a step per epoch">
@@ -21535,7 +21539,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-g-loop" class="model-component" style="top: 452px; left: 590px">
+              <div id="component-g-loop" class="model-component" style="top: 422px; left: 530px">
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-add-button" title="Increase a step per epoch">
@@ -21553,7 +21557,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-discriminator-learning" class="model-component" style="top: 75px; left: 495px">
+              <div id="component-discriminator-learning" class="model-component" style="top: 55px; left: 440px">
                 <div class="config-item" style="width: 120px">
                   <div class="up-down-buttons">
                     <label>Optimizer:</label>
@@ -21588,7 +21592,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-generator-learning" class="model-component" style="top: 365px; left: 205px">
+              <div id="component-generator-learning" class="model-component" style="top: 335px; left: 180px">
                 <div class="config-item" style="width: 120px">
                   <div class="up-down-buttons">
                     <label>Optimizer:</label>
@@ -21623,27 +21627,28 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-true-prediction" class="model-component" style="top: 156px; left: 575px">
+              <div id="component-true-prediction" class="model-component" style="top: 136px; left: 525px">
                 <div class="component-sub-label">Real</div>
                 <svg id="svg-true-prediction"></svg>
               </div>
 
-              <div id="component-generated-prediction" class="model-component" style="top: 250px; left: 575px">
+              <div id="component-generated-prediction" class="model-component" style="top: 230px; left: 525px">
                 <div class="component-sub-label">Fake</div>
                 <svg id="svg-generated-prediction"></svg>
                 <div class="component-label">Prediction of<br>Samples</div>
               </div>
 
-              <div id="component-discriminator" class="model-component model-component-model" style="top: 156px; left: 412px">
+              <div id="component-discriminator" class="model-component model-component-model" style="top: 136px; left: 372px">
                 <svg id="svg-discriminator-output"></svg>
                 <div class="component-label">Discriminator
                   <div id="overlap-toggle" class="checkbox-toggle">
-                    <input type="checkbox" id="overlap-plots" checked="" title="show/hide discriminator's prediction">
+                    <paper-checkbox type="checkbox" id="overlap-plots" checked="" title="show/hide discriminator's classification">
+                    </paper-checkbox>
                   </div>
                 </div>
               </div>
 
-              <div id="component-options-discriminator" class="model-component-options" style="top: 337px; left: 410px">
+              <div id="component-options-discriminator" class="model-component-options" style="top: 307px; left: 365px">
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="d-layers-add-button" title="Add a layer">
@@ -21673,16 +21678,17 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-generator" class="model-component model-component-model" style="top: 156px; left: 122px">
+              <div id="component-generator" class="model-component model-component-model" style="top: 136px; left: 102px">
                   <svg id="svg-generator-manifold"></svg>
                   <div class="component-label">Generator
                     <div id="manifold-toggle" class="checkbox-toggle" title="show/hide generator's manifold">
-                      <input type="checkbox" id="enable-manifold">
+                      <paper-checkbox type="checkbox" id="enable-manifold">
+                      </paper-checkbox>
                     </div>
                   </div>
                 </div>
 
-              <div id="component-options-generator" class="model-component-options" style="top: 337px; left: 120px">
+              <div id="component-options-generator" class="model-component-options" style="top: 307px; left: 95px">
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="g-layers-add-button" title="Add a layer">
@@ -21712,52 +21718,56 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 </div>
               </div>
 
-              <div id="component-discriminator-gradients" class="model-component" style="top: 27px; left: 470px">
+              <div id="component-discriminator-gradients" class="model-component" style="top: 7px; left: 430px">
                 <div class="component-label">Gradients</div>
               </div>
 
-              <div id="component-generator-gradients" class="model-component" style="top: 420px; left: 285px">
+              <div id="component-generator-gradients" class="model-component" style="top: 390px; left: 255px">
                 <svg id="svg-generator-gradients"></svg>
                 <div class="component-label">Gradients
                   <div id="g-gradients-toggle" class="checkbox-toggle" title="show/hide gradients for generator" style="right: 11px; top: 1px">
-                    <input type="checkbox" id="show-g-gradients" checked="">
+                    <paper-checkbox type="checkbox" id="show-g-gradients" checked="">
+                    </paper-checkbox>
                   </div>
                 </div>
               </div>
 
-              <div id="component-true-distribution" class="model-component" style="top: 125px; left: 315px; width: 65px;">
+              <div id="component-true-distribution" class="model-component" style="top: 105px; left: 285px; width: 55px;">
                 <div>
-                  <div id="t-contour-toggle" class="checkbox-toggle" title="show/hide true distribution's contour" style="right: 1px; top: 6px">
-                    <input type="checkbox" id="show-t-contour">
+                  <div id="t-contour-toggle" class="checkbox-toggle" title="show/hide real samples' density contour" style="right: 1px; top: 6px">
+                    <paper-checkbox type="checkbox" id="show-t-contour">
+                    </paper-checkbox>
                   </div>
                 </div>
               </div>
 
-              <div id="component-true-samples" class="model-component" style="top: 156px; left: 285px">
+              <div id="component-true-samples" class="model-component" style="top: 136px; left: 255px">
                 <div class="component-sub-label">Real
-                  <div id="t-samples-toggle" class="checkbox-toggle" title="show/hide true samples">
-                    <input type="checkbox" id="show-t-samples" checked="">
+                  <div id="t-samples-toggle" class="checkbox-toggle" title="show/hide real samples">
+                    <paper-checkbox type="checkbox" id="show-t-samples" checked="">
+                    </paper-checkbox>
                   </div>
                 </div>
                 <svg id="svg-true-samples"></svg>
               </div>
 
-              <div id="component-generated-samples" class="model-component" style="top: 250px; left: 285px">
+              <div id="component-generated-samples" class="model-component" style="top: 230px; left: 255px">
                 <div class="component-sub-label">Fake
-                  <div id="g-samples-toggle" class="checkbox-toggle" title="show/hide generated samples">
-                    <input type="checkbox" id="show-g-samples" checked="">
+                  <div id="g-samples-toggle" class="checkbox-toggle" title="show/hide fake samples">
+                    <paper-checkbox type="checkbox" id="show-g-samples" checked="">
+                    </paper-checkbox>
                   </div>
                 </div>
                 <svg id="svg-generated-samples"></svg>
                 <div class="component-label">Samples</div>
               </div>
 
-              <div id="component-noise" class="model-component" style="top: 250px; left: -5px">
+              <div id="component-noise" class="model-component" style="top: 230px; left: -15px">
                 <svg id="svg-noise"></svg>
                 <div class="component-label">Noise</div>
               </div>
 
-              <div id="component-options-noise" class="model-component-options" style="top: 333px; left: 15px">
+              <div id="component-options-noise" class="model-component-options" style="top: 303px; left: 0px">
                 <div class="config-item" style="width: 80px">
                   <paper-dropdown-menu no-animations="" no-label-float="">
                     <paper-listbox attr-for-selected="value" id="noise-dropdown" class="dropdown-content" selected="{{selectedNoiseType}}">
@@ -21773,43 +21783,43 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
             </div>
 
             <div id="tooltips">
-              <div id="tooltip-d-generated-samples" class="tooltip tooltip-for-d" style="top: -10px; left: 0px">
+              <div id="tooltip-d-generated-samples" class="tooltip tooltip-for-d" style="top: 0; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
               </div>
-              <div id="tooltip-d-prediction" class="tooltip tooltip-for-d" style="top: -10px; left: 160px">
+              <div id="tooltip-d-prediction" class="tooltip tooltip-for-d" style="top: 0; left: 150px">
                 <div class="tooltip-number">2</div>
                 Discriminator classifies samples
               </div>
-              <div id="tooltip-d-loss" class="tooltip tooltip-for-d" style="top: -10px; left: 320px">
+              <div id="tooltip-d-loss" class="tooltip tooltip-for-d" style="top: 0; left: 300px">
                 <div class="tooltip-number">3</div>
                 Computes discriminator loss
               </div>
-              <div id="tooltip-d-gradients" class="tooltip tooltip-for-d" style="top: -10px; left: 480px">
+              <div id="tooltip-d-gradients" class="tooltip tooltip-for-d" style="top: 0; left: 450px">
                 <div class="tooltip-number">4</div>
                 Computes discriminator gradients
               </div>
-              <div id="tooltip-update-discriminator" class="tooltip tooltip-for-d" style="top: -10px; left: 640px">
+              <div id="tooltip-update-discriminator" class="tooltip tooltip-for-d" style="top: 0; left: 600px">
                 <div class="tooltip-number">5</div>
                 Updates discriminator based on gradients
               </div>
-              <div id="tooltip-g-generated-samples" class="tooltip tooltip-for-g" style="top: 510px; left: 0px">
+              <div id="tooltip-g-generated-samples" class="tooltip tooltip-for-g" style="top: 500px; left: 0px">
                 <div class="tooltip-number">1</div>
                 Generator derives samples from noise
               </div>
-              <div id="tooltip-g-prediction" class="tooltip tooltip-for-g" style="top: 510px; left: 160px">
+              <div id="tooltip-g-prediction" class="tooltip tooltip-for-g" style="top: 500px; left: 150px">
                 <div class="tooltip-number">2</div>
                 Discriminator classifies fake samples only
               </div>
-              <div id="tooltip-g-loss" class="tooltip tooltip-for-g" style="top: 510px; left: 320px">
+              <div id="tooltip-g-loss" class="tooltip tooltip-for-g" style="top: 500px; left: 300px">
                 <div class="tooltip-number">3</div>
                 Computes generator loss
               </div>
-              <div id="tooltip-g-gradients" class="tooltip tooltip-for-g" style="top: 510px; left: 480px">
+              <div id="tooltip-g-gradients" class="tooltip tooltip-for-g" style="top: 500px; left: 450px">
                 <div class="tooltip-number">4</div>
                 Computes generator gradients
               </div>
-              <div id="tooltip-update-generator" class="tooltip tooltip-for-g" style="top: 510px; left: 640px">
+              <div id="tooltip-update-generator" class="tooltip tooltip-for-g" style="top: 500px; left: 600px">
                 <div class="tooltip-number">5</div>
                 Updates generator based on gradients
               </div>
@@ -21821,8 +21831,8 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
 
         <div id="visualization-container" class="panel-item">
           <div class="panel-title" title="Visualizes components in the model overview graph as 
-multiple layers. The six layers can be turned on or off using 
-green toggle switches on the left.">
+multiple layers. The layers can be turned on or off using 
+green toggle switches on the left or checkboxes on the bottom.">
             Layered Distributions
           </div>
 
@@ -21842,46 +21852,57 @@ green toggle switches on the left.">
                 </g>
               </g>
             </svg>
-            <svg id="vis-descriptions" width="400" height="220">
-              <g transform="translate(5,20)">
-                <text transform="translate(0,0)">
-                  Each dot is a 2D data sample:
-                </text>
-                <circle class="true-dot" r="2" transform="translate(5,15)"></circle>
-                <text transform="translate(15,19)">Real samples</text>
-                <circle class="generated-dot" r="2" transform="translate(5,34)"></circle>
-                <text transform="translate(15,38)">Fake samples</text>
-              </g>
-              <g transform="translate(5,80)">
-                <text transform="translate(0,10)">
-                  Background colors of grid cells represent 
-                  discriminator's predictions:
-                </text>
-                <rect class="true-dot" width="10" height="10" transform="translate(1,20)" style="fill-opacity: 0.75"></rect>
-                <text transform="translate(16,29)">
-                  Samples in this cell seem real.
-                </text>
-                <rect width="10" height="10" transform="translate(1,39)" style="fill: #e2e2e2"></rect>
-                <text transform="translate(16,48)">
-                  Difficult to determine whether samples are real or fake.
-                </text>
-                <rect class="generated-dot" width="10" height="10" transform="translate(1,58)" style="fill-opacity: 0.75"></rect>
-                <text transform="translate(16,67)">
-                  Samples in this cell seem fake.
-                </text>
-              </g>
-              <g transform="translate(5,180)">
-                <text transform="translate(0,0)">
-                  Lines from fake samples represent gradients for generator:
-                </text>
-                <circle class="generated-dot" r="2" transform="translate(3,18)"></circle>
-                <text transform="translate(15,19)">
-                  This sample needs to move upper right 
-                  to decrease generator's loss.
-                </text>
-                <polygon class="gradient-generated" transform="translate(3,18)" points="0,0 1,1 10,-10 -1,-1"></polygon>
-              </g>
-            </svg>
+
+            <div id="layers-descriptions">
+              <div class="layers-descriptions-section">
+                Each dot is a 2D data sample:                
+                <paper-checkbox id="toggle-right-real-samples" checked="">
+                  <span style="color: rgb(0, 136, 55);">Real samples</span>
+                </paper-checkbox>
+                <paper-checkbox id="toggle-right-fake-samples" checked="">
+                  <span style="color: rgb(123, 50, 148);">Fake samples</span>
+                </paper-checkbox>
+              </div>
+              <div class="layers-descriptions-section">
+                Background colors of grid cells represent
+                <paper-checkbox id="toggle-right-discriminator" checked="">
+                  <span style="color: rgb(64, 128, 247);">
+                    Discriminator</span>'s classifications:           
+                </paper-checkbox>
+                <br>
+                <svg width="10" height="12">
+                  <rect class="true-dot" width="10" height="10" style="fill-opacity: 0.75"></rect>
+                </svg>
+                Samples in this cell seem real;
+                <svg width="10" height="12">
+                  <rect class="generated-dot" width="10" height="10" style="fill-opacity: 0.75"></rect>
+                </svg>
+                Samples in this cell seem fake.
+              </div>
+              <div class="layers-descriptions-section">
+                <strong>Manifold</strong> represents
+                <paper-checkbox id="toggle-right-generator">
+                  <span style="color: rgb(170, 79, 192);">
+                    Generator</span>'s transformation results from noise space:
+                </paper-checkbox>
+                <br>
+                Opacity encodes density:
+                darker purple means more samples in smaller area.
+              </div>
+              <div class="layers-descriptions-section">
+                Pink lines from fake samples represent 
+                <paper-checkbox id="toggle-right-gradients" checked="">
+                  Gradients for generator:
+                </paper-checkbox>
+                <br>
+                <svg width="12" height="12">
+                  <circle class="generated-dot" r="2" transform="translate(2,10)"></circle>
+                  <polygon class="gradient-generated" transform="translate(2,10)" points="0,0 1,1 10,-10 -1,-1"></polygon>
+                </svg>                
+                This sample needs to move upper right 
+                to decrease generator's loss.
+              </div>
+            </div>
 
             <div id="drawing-container">
               <canvas id="input-drawing-canvas" width="400" height="400"></canvas>
@@ -21899,12 +21920,12 @@ green toggle switches on the left.">
           <div class="panel-title">Metrics</div>
 
           <div id="chart-container">
-            <canvas id="cost-chart" width="200" height="200"></canvas>
-            <canvas id="eval-chart" width="200" height="200"></canvas>
+            <canvas id="cost-chart" width="180" height="180"></canvas>
+            <canvas id="eval-chart" width="180" height="180"></canvas>
           </div>
         </div>
       </div>
-    </div>
+    </div>    
   </template>
 </dom-module>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css"><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script><script>/**
@@ -21984,7 +22005,7 @@ inializePolymerPage();
     body {
       font-family: "Roboto", "Helvetica", "Arial", sans-serif;
       margin: 0;
-      min-width: 1550px;
+      min-width: 1402px;
       width: 100%;
       height: 100%;
     }
@@ -21994,6 +22015,7 @@ inializePolymerPage();
       color: #fff;
       font-size: 16px;
       padding: 20px 30px;
+      text-align: center;
     }    
 
     #description {
@@ -22006,15 +22028,17 @@ inializePolymerPage();
     #description h2 {
       color: #444;
       font-size: 32px;
+      font-weight: 450;
       margin-bottom: 12px;
-      margin-top: 52px;
+      margin-top: 60px;
     }
 
     #description h4 {
       color: #444;
       font-size: 24px;
+      font-weight: 450;
       margin-bottom: 8px;
-      margin-top: 32px;
+      margin-top: 36px;
     }
 
     #description p, 
