@@ -479,7 +479,7 @@ class GANLab extends GANLabPolymer {
     const trueSampleProviderBuilder =
       new ganlab_input_providers.GANLabTrueSampleProviderBuilder(
         ATLAS_SIZE, this.selectedShapeName,
-        drawingPositions, this.sampleFromTrueDistribution, BATCH_SIZE);
+        drawingPositions, BATCH_SIZE);
     trueSampleProviderBuilder.generateAtlas();
     this.trueSampleProvider = trueSampleProviderBuilder.getInputProvider();
     this.trueSampleProviderFixed =
@@ -572,71 +572,6 @@ class GANLab extends GANLabPolymer {
       });
     }
   }
-  
-  private sampleFromTrueDistribution(
-    selectedShapeName: string, drawingPositions: Array<[number, number]>) {
-    const rand = Math.random();
-    switch (selectedShapeName) {
-      case 'drawing': {
-        const index = Math.floor(drawingPositions.length * rand);
-        return [
-          drawingPositions[index][0] +
-          0.02 * ganlab_input_providers.randNormal(),
-          drawingPositions[index][1] +
-          0.02 * ganlab_input_providers.randNormal()
-        ];
-      }
-      case 'line': {
-        return [
-          0.8 - 0.75 * rand + 0.01 * ganlab_input_providers.randNormal(),
-          0.6 + 0.3 * rand + 0.01 * ganlab_input_providers.randNormal()
-        ];
-      }
-      case 'gaussians': {
-        if (rand < 0.5) {
-          return [
-            0.3 + 0.1 * ganlab_input_providers.randNormal(),
-            0.7 + 0.1 * ganlab_input_providers.randNormal()
-          ];
-        } else {
-          return [
-            0.7 + 0.05 * ganlab_input_providers.randNormal(),
-            0.4 + 0.2 * ganlab_input_providers.randNormal()
-          ];
-        }
-      }
-      case 'ring': {
-        return [
-          0.5 + 0.3 * Math.cos(rand * Math.PI * 2) +
-          0.025 * ganlab_input_providers.randNormal(),
-          0.45 + 0.25 * Math.sin(rand * Math.PI * 2) +
-          0.025 * ganlab_input_providers.randNormal(),
-        ];
-      }
-      case 'disjoint': {
-        const stdev = 0.025;
-        if (rand < 0.333) {
-          return [
-            0.35 + stdev * ganlab_input_providers.randNormal(),
-            0.75 + stdev * ganlab_input_providers.randNormal()
-          ];
-        } else if (rand < 0.666) {
-          return [
-            0.75 + stdev * ganlab_input_providers.randNormal(),
-            0.6 + stdev * ganlab_input_providers.randNormal()
-          ];
-        } else {
-          return [
-            0.45 + stdev * ganlab_input_providers.randNormal(),
-            0.35 + stdev * ganlab_input_providers.randNormal()
-          ];
-        }
-      }
-      default: {
-        throw new Error('Invalid true distribution');
-      }
-    }
-  }
 
   private visualizeTrueDistribution(inputAtlasList: number[]) {
     const color = scaleSequential(interpolateGreens)
@@ -713,13 +648,17 @@ class GANLab extends GANLabPolymer {
   }
 
   private onClickFinishDrawingButton() {
-    const drawingElement =
-      this.querySelector('#drawing-container') as HTMLElement;
-    drawingElement.style.display = 'none';
-    const drawingBackgroundElement =
-      this.querySelector('#drawing-disable-background') as HTMLDivElement;
-    drawingBackgroundElement.style.display = 'none';
-    this.createExperiment();
+    if (this.drawing.drawingPositions.length === 0) {
+      alert('Draw something on canvas');
+    } else {
+      const drawingElement =
+        this.querySelector('#drawing-container') as HTMLElement;
+      drawingElement.style.display = 'none';
+      const drawingBackgroundElement =
+        this.querySelector('#drawing-disable-background') as HTMLDivElement;
+      drawingBackgroundElement.style.display = 'none';
+      this.createExperiment();
+    }
   }
 
   private disabledPretrainedMode() {

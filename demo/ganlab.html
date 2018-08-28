@@ -16,18 +16,26 @@
       margin-left: auto;
       margin-right: auto;
       justify-content: space-between;
-      width: 1402px;
+      width: 1442px;
     }
 
     #top-bar {
       background-color: #183D4E;
       color: #f5f5f5;
       font-size: 16px;
-      padding: 6px 30px 5px;
+      padding: 6px 0 5px;
     }
 
     #top-bar-panel-container {
       align-items: center;
+    }
+
+    #tool-description {
+      padding-left: 20px;
+    }
+
+    #source-link {
+      padding-right: 20px;
     }
 
     #source-link a {
@@ -40,7 +48,7 @@
       background-color: #eee;
       border-bottom: 2px solid #ddd;
       font-size: 30px;
-      padding: 10px 30px 9px;
+      padding: 10px 0 9px;
     }
 
     #top-panel-container {
@@ -57,6 +65,7 @@
       font-size: 36px;
       margin-left: 0;
       margin-right: 60px;
+      padding-left: 20px;
     }
 
     #distribution-selection .top-column-title {
@@ -220,7 +229,6 @@
       border-width: 0 1px 0 0;
       min-height: 570px;
       min-width: 740px;
-      padding-left: 0;
     }
 
     #model-vis-content-container {
@@ -427,16 +435,19 @@
       top: 410px;
     }
 
-    .layers-descriptions-section {
+    #layers-descriptions .layers-descriptions-section {
       color: #888;
-      font-size: 11.5px;
+      font-size: 11px;
       line-height: 16px;
       margin-bottom: 12px;
     }
-
+    
     #layers-descriptions paper-checkbox {
       margin-left: 3px;
       --paper-checkbox-checked-color: #999;
+      --paper-checkbox-label: {
+        font-size: 11px;
+      };
       --paper-checkbox-label-color: #444;
       --paper-checkbox-label-spacing: 2px;
       --paper-checkbox-size: 11px;
@@ -636,7 +647,6 @@
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-width: 0 0 0 1px;
       width: 180px;
-      padding-right: 0;
     }    
   </style>
   <template>    
@@ -1225,8 +1235,7 @@
         <div id="visualization-container" class="panel-item">
           <div class="panel-title"
             title="Visualizes components in the model overview graph as 
-multiple layers. The layers can be turned on or off using 
-green toggle switches on the left or checkboxes on the bottom.">
+multiple layers. The layers can be turned on or off using checkboxes.">
             Layered Distributions
           </div>
 
@@ -1252,7 +1261,7 @@ green toggle switches on the left or checkboxes on the bottom.">
 
             <div id="layers-descriptions">
               <div class="layers-descriptions-section">
-                Each dot is a 2D data sample:                
+                Each dot is a 2D data sample:
                 <paper-checkbox id="toggle-right-real-samples" checked>
                   <span style="color: rgb(0, 136, 55);">Real samples</span>
                 </paper-checkbox>
@@ -1276,7 +1285,7 @@ green toggle switches on the left or checkboxes on the bottom.">
                   <rect class="generated-dot" width="10" height="10"
                     style="fill-opacity: 0.75"></rect>
                 </svg>
-                Samples in this cell seem fake.
+                Samples seem fake.
               </div>
               <div class="layers-descriptions-section">
                 <strong>Manifold</strong> represents
@@ -1288,8 +1297,8 @@ green toggle switches on the left or checkboxes on the bottom.">
                 Opacity encodes density:
                 darker purple means more samples in smaller area.
               </div>
-              <div class="layers-descriptions-section">
-                Pink lines from fake samples represent 
+              <div class="layers-descriptions-section"> 
+                Pink lines from fake samples represent
                 <paper-checkbox id="toggle-right-gradients" checked>
                   Gradients for generator:
                 </paper-checkbox>
@@ -1300,7 +1309,7 @@ green toggle switches on the left or checkboxes on the bottom.">
                   <polygon class="gradient-generated"
                     transform="translate(2,10)"
                     points="0,0 1,1 10,-10 -1,-1"></polygon>
-                </svg>                
+                </svg> 
                 This sample needs to move upper right 
                 to decrease generator's loss.
               </div>
