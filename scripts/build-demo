@@ -24,7 +24,7 @@ const outputPath = path.join('output', 'bundle.js');
 
 const cmd = path.join('node_modules', '.bin', 'browserify');
 const child = spawn(cmd,
-    [tsPath, '-p', '[tsify', '-p', '../tsconfig.json]', '-o' , outputPath],
+    [tsPath, '-p', '[tsify', '-p', '../lib/tsconfig.json]', '-o' , outputPath],
     {detached: false});
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);

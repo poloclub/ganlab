@@ -1,8 +1,8 @@
 {
   "name": "ganlab",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "An Interactive, Visual Experimentation Tool for GANs",
-  "private": true,
+  "private": false,
   "dependencies": {
     "@bower_components/font-roboto": "PolymerElements/font-roboto#^1.0.1",
     "@bower_components/iron-a11y-announcer": "PolymerElements/iron-a11y-announcer#^1.0.0",

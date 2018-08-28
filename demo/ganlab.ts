@@ -6,7 +6,7 @@ import { interpolateGreens, interpolatePRGn } from 'd3-scale-chromatic';
 import { line } from 'd3-shape';
 import * as d3Transition from 'd3-transition';
 
-import { PolymerElement, PolymerHTMLElement } from '../polymer-spec';
+import { PolymerElement, PolymerHTMLElement } from '../lib/polymer-spec';
 import * as tf from '@tensorflow/tfjs-core';
 
 import * as ganlab_input_providers from './ganlab_input_providers';
