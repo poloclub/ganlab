@@ -26,7 +26,7 @@ const tsPath = path.join(demoPath, 'ganlab.ts');
 
 const cmd = path.join('node_modules', '.bin', 'watchify');
 
-const tsifyCmd = ['tsify', '-p', 'lib/tsconfig-dev.json'];
+const tsifyCmd = ['tsify', '-p', 'tsconfig-dev.json'];
 
 // tsifyCmd is passed to the watchify command, so the arguments should be
 // wrapped in [].
