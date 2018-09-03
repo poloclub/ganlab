@@ -469,7 +469,7 @@
   dependencies:
     source-map "^0.6.1"
 
-"@types/webcomponents.js@*":
+"@types/webcomponents.js@*", "@types/webcomponents.js@<=0.6.32":
   version "0.6.32"
   resolved "https://registry.yarnpkg.com/@types/webcomponents.js/-/webcomponents.js-0.6.32.tgz#aba4bbfcb6889205aa8f8e0adec0bfc595b4f6cd"
 
