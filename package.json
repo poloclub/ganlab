@@ -95,6 +95,9 @@
     "uglifyjs": "~2.4.11",
     "watchify": "~3.9.0"
   },
+  "resolutions": {
+    "@types/webcomponents.js": "<=0.6.32"
+  },
   "scripts": {
     "prep": "yarn",
     "build": "tsc",
