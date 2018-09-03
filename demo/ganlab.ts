@@ -314,7 +314,7 @@ class GANLab extends GANLabPolymer {
     ];
     checkboxList.forEach(layer => {      
       this.querySelector(layer.graph)!.addEventListener(
-      'change', (event: Event) => {
+        'change', (event: Event) => {
         const container =
           this.querySelector(layer.layer) as SVGGElement;
         // tslint:disable-next-line:no-any
@@ -322,22 +322,33 @@ class GANLab extends GANLabPolymer {
           (event.target as any).checked ? 'visible' : 'hidden';
           
         const element = 
-          this.querySelector(layer.description) as HTMLInputElement;
+          this.querySelector(layer.description) as HTMLElement;
         // tslint:disable-next-line:no-any
-        element.checked = (event.target as any).checked;
+        if ((event.target as any).checked) {
+          element.classList.add('checked');
+        } else {
+          element.classList.remove('checked');
+        }
       });
       this.querySelector(layer.description)!.addEventListener(
-      'change', (event: Event) => {
+        'click', (event: Event) => {
+        const spanElement = 
+          this.querySelector(layer.description) as HTMLElement;
         const container =
-          this.querySelector(layer.layer) as SVGGElement;
+          this.querySelector(layer.layer) as HTMLElement;
+        const element = 
+          this.querySelector(layer.graph) as HTMLInputElement;
+
         // tslint:disable-next-line:no-any
-        container.style.visibility =
-          (event.target as any).checked ? 'visible' : 'hidden';
-          
-          const element = 
-            this.querySelector(layer.graph) as HTMLInputElement;
-          // tslint:disable-next-line:no-any
-          element.checked = (event.target as any).checked;
+        if ((event.target as any).classList.contains('checked')) {
+          spanElement.classList.remove('checked');
+          container.style.visibility = 'hidden';
+          element.checked = false;
+        } else {
+          spanElement.classList.add('checked');
+          container.style.visibility = 'visible'
+          element.checked = true;
+        }
       });
     });
     this.querySelector('#show-t-contour')!.addEventListener(

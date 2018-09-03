@@ -317,6 +317,7 @@
 
     .model-component-model .component-label {
       background-color: #f7f7f7;
+      padding-left: 15px;
     }
 
     .component-sub-label {
@@ -375,22 +376,24 @@
     }
 
     .checkbox-toggle {
-      right: 26px;
       position: absolute;
+      right: 40px;
       top: -1px;
     }
 
     .model-component-model .checkbox-toggle {
-      right: -8px;
+      display: inline-block;
+      position: relative;
+      right: 0;
       top: 0;
     }
 
     #model-visualization-container paper-checkbox {
-      --paper-checkbox-checked-color: #999;
+      --paper-checkbox-checked-color: #bbb;
       --paper-checkbox-label-color: #444;
       --paper-checkbox-label-spacing: 2px;
       --paper-checkbox-size: 10px;
-      --paper-checkbox-unchecked-color: #999;
+      --paper-checkbox-unchecked-color: #bbb;
     }
 
     .up-down-buttons {
@@ -440,20 +443,20 @@
       font-size: 11px;
       line-height: 16px;
       margin-bottom: 12px;
-    }
-    
-    #layers-descriptions paper-checkbox {
-      margin-left: 3px;
-      --paper-checkbox-checked-color: #999;
-      --paper-checkbox-label: {
-        font-size: 11px;
-      };
-      --paper-checkbox-label-color: #444;
-      --paper-checkbox-label-spacing: 2px;
-      --paper-checkbox-size: 11px;
-      --paper-checkbox-unchecked-color: #999;
+      -webkit-text-size-adjust: none;
     }
 
+    #layers-descriptions .toggle-right {
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: underline;
+      text-decoration-style: dashed;
+    }
+    
+    #layers-descriptions .toggle-right.checked {
+      text-decoration-style: solid;
+    }
+    
     #drawing-container {
       background: #fff;
       border-radius: 5px;
@@ -1101,7 +1104,7 @@
                 <div class="component-label">Gradients
                   <div id="g-gradients-toggle" class="checkbox-toggle"
                     title="show/hide gradients for generator"
-                    style="right: 11px; top: 1px">
+                    style="right: 13px; top: -1px">
                     <paper-checkbox type="checkbox" id="show-g-gradients" 
                       checked>
                     </paper-checkbox>
@@ -1110,7 +1113,7 @@
               </div>
 
               <div id="component-true-distribution" class="model-component"
-                style="top: 105px; left: 285px; width: 55px;">
+                style="top: 105px; left: 285px; width: 55px; display: none;">
                 <div>
                   <div id="t-contour-toggle" class="checkbox-toggle"
                     title="show/hide real samples' density contour"
@@ -1262,46 +1265,43 @@ multiple layers. The layers can be turned on or off using checkboxes.">
             <div id="layers-descriptions">
               <div class="layers-descriptions-section">
                 Each dot is a 2D data sample:
-                <paper-checkbox id="toggle-right-real-samples" checked>
-                  <span style="color: rgb(0, 136, 55);">Real samples</span>
-                </paper-checkbox>
-                <paper-checkbox id="toggle-right-fake-samples" checked>
-                  <span style="color: rgb(123, 50, 148);">Fake samples</span>
-                </paper-checkbox>
+                <span id="toggle-right-real-samples" 
+                  class="toggle-right checked"
+                  style="color: rgb(0, 136, 55);">real samples</span>;
+                <span id="toggle-right-fake-samples"
+                  class="toggle-right checked" 
+                  style="color: rgb(123, 50, 148);">fake samples</span>.
               </div>
               <div class="layers-descriptions-section">
                 Background colors of grid cells represent
-                <paper-checkbox id="toggle-right-discriminator" checked>
-                  <span style="color: rgb(64, 128, 247);">
-                    Discriminator</span>'s classifications:           
-                </paper-checkbox>
+                <span id="toggle-right-discriminator"
+                  class="toggle-right checked"
+                  style="color: rgb(64, 128, 247);">
+                    discriminator</span>'s classifications.
                 <br />
-                <svg width="10" height="12">
-                  <rect class="true-dot" width="10" height="10"
-                    style="fill-opacity: 0.75"></rect>
-                </svg>
-                Samples in this cell seem real;
-                <svg width="10" height="12">
-                  <rect class="generated-dot" width="10" height="10"
-                    style="fill-opacity: 0.75"></rect>
-                </svg>
-                Samples seem fake.
+                Samples in
+                <span style="color: rgb(0, 136, 55);">green regions</span>
+                are likely to be real;
+                those in
+                <span style="color: rgb(123, 50, 148);">purple regions</span>
+                likely fake.
               </div>
               <div class="layers-descriptions-section">
                 <strong>Manifold</strong> represents
-                <paper-checkbox id="toggle-right-generator">
-                  <span style="color: rgb(170, 79, 192);">
-                    Generator</span>'s transformation results from noise space:
-                </paper-checkbox>
+                <span id="toggle-right-generator"
+                  class="toggle-right"
+                  style="color: rgb(123, 50, 148);">
+                    Generator</span>'s transformation results from noise space.
                 <br />
                 Opacity encodes density:
                 darker purple means more samples in smaller area.
               </div>
               <div class="layers-descriptions-section"> 
                 Pink lines from fake samples represent
-                <paper-checkbox id="toggle-right-gradients" checked>
-                  Gradients for generator:
-                </paper-checkbox>
+                <span id="toggle-right-gradients"
+                  class="toggle-right checked"
+                  style="color: rgb(170, 79, 192);">
+                  Gradients</span> for generator.
                 <br />
                 <svg width="12" height="12">
                   <circle class="generated-dot" r="2"
