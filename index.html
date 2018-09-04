@@ -22044,13 +22044,18 @@ inializePolymerPage();
 
     #loading {
       background-color: #f7f7f7;
-      font-size: 48px;
-      height: 120px;
-      margin-top: 80px;
+      font-size: 40px;
+      height: 140px;
+      line-height: 40px;
+      padding-top: 60px;
       position: absolute;
       text-align: center;
       width: 100%;
       z-index: -1;
+    }
+
+    #loading small {
+      font-size: 20px;
     }
 
     #demo {      
@@ -22152,6 +22157,8 @@ inializePolymerPage();
   <div id="demo">
     <div id="loading">
       Loading...
+      <br>
+      <small>It may take a few tens of seconds.</small>
     </div>
     <gan-lab></gan-lab>
   </div>
