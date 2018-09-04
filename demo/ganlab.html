@@ -426,10 +426,12 @@
       font-weight: bold;
       text-decoration: underline;
       text-decoration-style: dashed;
+      -webkit-text-decoration-style: dashed;
     }
     
     #layers-descriptions .toggle-right.checked {
       text-decoration-style: solid;
+      -webkit-text-decoration-style: solid;
     }
     
     #drawing-container {
@@ -1228,15 +1230,18 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                 Each dot is a 2D data sample:
                 <span id="toggle-right-real-samples" 
                   class="toggle-right checked"
+                  title="click to toggle this layer"
                   style="color: var(--real-data-color);">real samples</span>;
                 <span id="toggle-right-fake-samples"
-                  class="toggle-right checked" 
+                  class="toggle-right checked"
+                  title="click to toggle this layer"
                   style="color: var(--generator-color);">fake samples</span>.
               </div>
               <div class="layers-descriptions-section">
                 Background colors of grid cells represent
                 <span id="toggle-right-discriminator"
                   class="toggle-right checked"
+                  title="click to toggle this layer"
                   style="color: rgb(64, 128, 247);">
                     discriminator</span>'s classifications.
                 <br />
@@ -1251,8 +1256,9 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                 <strong>Manifold</strong> represents
                 <span id="toggle-right-generator"
                   class="toggle-right"
+                  title="click to toggle this layer"
                   style="color: var(--generator-color);">
-                    Generator</span>'s transformation results from noise space.
+                    generator</span>'s transformation results from noise space.
                 <br />
                 Opacity encodes density:
                 darker purple means more samples in smaller area.
@@ -1261,8 +1267,9 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                 Pink lines from fake samples represent
                 <span id="toggle-right-gradients"
                   class="toggle-right checked"
+                  title="click to toggle this layer"
                   style="color: var(--gradient-color);">
-                  Gradients</span> for generator.
+                  gradients</span> for generator.
                 <br />
                 <svg width="12" height="12">
                   <circle class="generated-dot" r="2"
