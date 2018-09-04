@@ -1667,8 +1667,8 @@ class GANLab extends GANLabPolymer {
       this.evalChart.destroy();
     }
     const evalChartSpecification = [
-      { label: 'KL Divergence (grid)', color: 'rgba(220, 80, 20, 0.5)' },
-      { label: 'JS Divergence (grid)', color: 'rgba(200, 150, 10, 0.5)' }
+      { label: 'KL Divergence (by grid)', color: 'rgba(220, 80, 20, 0.5)' },
+      { label: 'JS Divergence (by grid)', color: 'rgba(200, 150, 10, 0.5)' }
     ];
     this.evalChart = this.createChart(
       'eval-chart', this.evalChartData, evalChartSpecification, 0);
@@ -1676,7 +1676,7 @@ class GANLab extends GANLabPolymer {
 
   private updateChartData(data: ChartData[][], xVal: number, yList: number[]) {
     for (let i = 0; i < yList.length; ++i) {
-      data[i].push({ x: xVal, y: yList[i] });
+      data[i].push({ x: xVal, y: yList[i].toFixed(3) });
     }
   }
 
@@ -1689,13 +1689,14 @@ class GANLab extends GANLabPolymer {
     const chartDatasets = specification.map((chartSpec, i) => {
       return {
         data: chartData[i],
-        fill: false,
-        label: chartSpec.label,
-        pointRadius: 0,
+        backgroundColor: chartSpec.color,
         borderColor: chartSpec.color,
         borderWidth: 1,
+        fill: false,
+        label: chartSpec.label,
         lineTension: 0,
-        pointHitRadius: 8
+        pointHitRadius: 8,
+        pointRadius: 0
       };
     });
 
@@ -1704,6 +1705,9 @@ class GANLab extends GANLabPolymer {
       data: { datasets: chartDatasets },
       options: {
         animation: { duration: 0 },
+        legend: {
+          labels: { boxWidth: 10 }
+        },
         responsive: false,
         scales: {
           xAxes: [{ type: 'linear', position: 'bottom' }],

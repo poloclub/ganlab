@@ -19,31 +19,6 @@
       width: 1442px;
     }
 
-    #top-bar {
-      background-color: #183D4E;
-      color: #f5f5f5;
-      font-size: 16px;
-      padding: 7px 0 6px;
-    }
-
-    #top-bar-panel-container {
-      align-items: center;
-    }
-
-    #tool-description {
-      padding-left: 20px;
-    }
-
-    #source-link {
-      padding-right: 20px;
-    }
-
-    #source-link a {
-      color: #f0f0f0;
-      font-size: 14px;
-      text-decoration: none;
-    }
-
     #top-panel {
       background-color: #eee;
       border-bottom: 2px solid #ddd;
@@ -653,20 +628,6 @@
     }    
   </style>
   <template>    
-    <div id="top-bar">
-      <div id="top-bar-panel-container" class="panel-container">
-        <div id="tool-description">
-          Play with Generated Adversarial Networks (GANs) in your browser!          
-        </div>
-        <div id="source-link">
-          <a href="https://github.com/poloclub/ganlab" title="Source on GitHub">
-            Fork us on GitHub&nbsp;
-            <img src="images/github-mark.png" />
-          </a>
-        </div>
-      </div>
-    </div>
-    
     <div id="top-panel">
       <div id="top-panel-container" class="panel-container">
         <div id="page-title" class="top-panel-item"><strong>GAN</strong> Lab</div>
@@ -1267,10 +1228,10 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                 Each dot is a 2D data sample:
                 <span id="toggle-right-real-samples" 
                   class="toggle-right checked"
-                  style="color: rgb(0, 136, 55);">real samples</span>;
+                  style="color: var(--real-data-color);">real samples</span>;
                 <span id="toggle-right-fake-samples"
                   class="toggle-right checked" 
-                  style="color: rgb(123, 50, 148);">fake samples</span>.
+                  style="color: var(--generator-color);">fake samples</span>.
               </div>
               <div class="layers-descriptions-section">
                 Background colors of grid cells represent
@@ -1280,17 +1241,17 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                     discriminator</span>'s classifications.
                 <br />
                 Samples in
-                <span style="color: rgb(0, 136, 55);">green regions</span>
+                <span style="color: var(--real-data-color);">green regions</span>
                 are likely to be real;
                 those in
-                <span style="color: rgb(123, 50, 148);">purple regions</span>
+                <span style="color: var(--generator-color);">purple regions</span>
                 likely fake.
               </div>
               <div class="layers-descriptions-section">
                 <strong>Manifold</strong> represents
                 <span id="toggle-right-generator"
                   class="toggle-right"
-                  style="color: rgb(123, 50, 148);">
+                  style="color: var(--generator-color);">
                     Generator</span>'s transformation results from noise space.
                 <br />
                 Opacity encodes density:
@@ -1300,7 +1261,7 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                 Pink lines from fake samples represent
                 <span id="toggle-right-gradients"
                   class="toggle-right checked"
-                  style="color: rgb(170, 79, 192);">
+                  style="color: var(--gradient-color);">
                   Gradients</span> for generator.
                 <br />
                 <svg width="12" height="12">
