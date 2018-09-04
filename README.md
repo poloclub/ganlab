@@ -82,7 +82,7 @@ For more information, check out
 [our research paper](http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf):     
  
 [Minsuk Kahng](http://minsuk.com),
-[Nikhil Thorat](https://twitter.com/nsthorat)
+[Nikhil Thorat](https://twitter.com/nsthorat),
 [Polo Chau](https://www.cc.gatech.edu/~dchau/),
 [Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/).
