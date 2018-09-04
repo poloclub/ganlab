@@ -7,8 +7,6 @@ By
 [Fernanda Viégas](http://fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/)
 
-**_Please note that the source code and demo in this repository are provided for reviewers of our research paper under review. GAN Lab will be officially announced by the authors later._**
-
 ## Overview
 
 GAN Lab is a novel interactive visualization tool for anyone to learn and experiment with Generative Adversarial Networks (GANs), a popular class of complex deep learning models. With GAN Lab, you can interactively train GAN models for 2D data distributions and visualize their inner-workings, similar to [TensorFlow Playground](http://playground.tensorflow.org/).
@@ -29,7 +27,7 @@ It runs on most modern web browsers. We suggest you use Google Chrome.
 
 ## Development
 
-This section describes how you can interactively develop GAN Lab.
+This section describes how you can develop GAN Lab.
 
 ### Install Dependencies
 
@@ -71,7 +69,7 @@ GAN Lab was created by
 [Minsuk Kahng](http://minsuk.com),
 [Nikhil Thorat](https://twitter.com/nsthorat),
 [Polo Chau](https://www.cc.gatech.edu/~dchau/),
-[Fernanda Viégas](http://fernandaviegas.com/), and 
+[Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/),
 which was the result of a research collaboration between Georgia Tech and Google Brain.
 We also thank Shan Carter and Daniel Smilkov, 
@@ -86,7 +84,7 @@ For more information, check out
 [Minsuk Kahng](http://minsuk.com),
 [Nikhil Thorat](https://twitter.com/nsthorat)
 [Polo Chau](https://www.cc.gatech.edu/~dchau/),
-[Fernanda Viégas](http://fernandaviegas.com/), and 
+[Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/).
 "GAN Lab: Understanding Complex Deep Generative Models using Interactive Visual Experimentation."
 *IEEE Transactions on Visualization and Computer Graphics, 25(1) ([VAST 2018](http://ieeevis.org/year/2018/welcome))*, Jan. 2019.
