@@ -245,16 +245,28 @@ class GANLab extends GANLabPolymer {
                     event.target.checked ? 'visible' : 'hidden';
                 const element = this.querySelector(layer.description);
                 // tslint:disable-next-line:no-any
-                element.checked = event.target.checked;
+                if (event.target.checked) {
+                    element.classList.add('checked');
+                }
+                else {
+                    element.classList.remove('checked');
+                }
             });
-            this.querySelector(layer.description).addEventListener('change', (event) => {
+            this.querySelector(layer.description).addEventListener('click', (event) => {
+                const spanElement = this.querySelector(layer.description);
                 const container = this.querySelector(layer.layer);
-                // tslint:disable-next-line:no-any
-                container.style.visibility =
-                    event.target.checked ? 'visible' : 'hidden';
                 const element = this.querySelector(layer.graph);
                 // tslint:disable-next-line:no-any
-                element.checked = event.target.checked;
+                if (event.target.classList.contains('checked')) {
+                    spanElement.classList.remove('checked');
+                    container.style.visibility = 'hidden';
+                    element.checked = false;
+                }
+                else {
+                    spanElement.classList.add('checked');
+                    container.style.visibility = 'visible';
+                    element.checked = true;
+                }
             });
         });
         this.querySelector('#show-t-contour').addEventListener('change', (event) => {
@@ -1331,14 +1343,14 @@ class GANLab extends GANLabPolymer {
             this.evalChart.destroy();
         }
         const evalChartSpecification = [
-            { label: 'KL Divergence (grid)', color: 'rgba(220, 80, 20, 0.5)' },
-            { label: 'JS Divergence (grid)', color: 'rgba(200, 150, 10, 0.5)' }
+            { label: 'KL Divergence (by grid)', color: 'rgba(220, 80, 20, 0.5)' },
+            { label: 'JS Divergence (by grid)', color: 'rgba(200, 150, 10, 0.5)' }
         ];
         this.evalChart = this.createChart('eval-chart', this.evalChartData, evalChartSpecification, 0);
     }
     updateChartData(data, xVal, yList) {
         for (let i = 0; i < yList.length; ++i) {
-            data[i].push({ x: xVal, y: yList[i] });
+            data[i].push({ x: xVal, y: yList[i].toFixed(3) });
         }
     }
     createChart(canvasId, chartData, specification, min, max) {
@@ -1347,13 +1359,14 @@ class GANLab extends GANLabPolymer {
         const chartDatasets = specification.map((chartSpec, i) => {
             return {
                 data: chartData[i],
-                fill: false,
-                label: chartSpec.label,
-                pointRadius: 0,
+                backgroundColor: chartSpec.color,
                 borderColor: chartSpec.color,
                 borderWidth: 1,
+                fill: false,
+                label: chartSpec.label,
                 lineTension: 0,
-                pointHitRadius: 8
+                pointHitRadius: 8,
+                pointRadius: 0
             };
         });
         return new Chart(context, {
@@ -1361,6 +1374,9 @@ class GANLab extends GANLabPolymer {
             data: { datasets: chartDatasets },
             options: {
                 animation: { duration: 0 },
+                legend: {
+                    labels: { boxWidth: 10 }
+                },
                 responsive: false,
                 scales: {
                     xAxes: [{ type: 'linear', position: 'bottom' }],
