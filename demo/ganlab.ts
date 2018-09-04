@@ -6,7 +6,7 @@ import { interpolateGreens, interpolatePRGn } from 'd3-scale-chromatic';
 import { line } from 'd3-shape';
 import * as d3Transition from 'd3-transition';
 
-import { PolymerElement, PolymerHTMLElement } from '../polymer-spec';
+import { PolymerElement, PolymerHTMLElement } from '../lib/polymer-spec';
 import * as tf from '@tensorflow/tfjs-core';
 
 import * as ganlab_input_providers from './ganlab_input_providers';
@@ -314,7 +314,7 @@ class GANLab extends GANLabPolymer {
     ];
     checkboxList.forEach(layer => {      
       this.querySelector(layer.graph)!.addEventListener(
-      'change', (event: Event) => {
+        'change', (event: Event) => {
         const container =
           this.querySelector(layer.layer) as SVGGElement;
         // tslint:disable-next-line:no-any
@@ -322,22 +322,33 @@ class GANLab extends GANLabPolymer {
           (event.target as any).checked ? 'visible' : 'hidden';
           
         const element = 
-          this.querySelector(layer.description) as HTMLInputElement;
+          this.querySelector(layer.description) as HTMLElement;
         // tslint:disable-next-line:no-any
-        element.checked = (event.target as any).checked;
+        if ((event.target as any).checked) {
+          element.classList.add('checked');
+        } else {
+          element.classList.remove('checked');
+        }
       });
       this.querySelector(layer.description)!.addEventListener(
-      'change', (event: Event) => {
+        'click', (event: Event) => {
+        const spanElement = 
+          this.querySelector(layer.description) as HTMLElement;
         const container =
-          this.querySelector(layer.layer) as SVGGElement;
+          this.querySelector(layer.layer) as HTMLElement;
+        const element = 
+          this.querySelector(layer.graph) as HTMLInputElement;
+
         // tslint:disable-next-line:no-any
-        container.style.visibility =
-          (event.target as any).checked ? 'visible' : 'hidden';
-          
-          const element = 
-            this.querySelector(layer.graph) as HTMLInputElement;
-          // tslint:disable-next-line:no-any
-          element.checked = (event.target as any).checked;
+        if ((event.target as any).classList.contains('checked')) {
+          spanElement.classList.remove('checked');
+          container.style.visibility = 'hidden';
+          element.checked = false;
+        } else {
+          spanElement.classList.add('checked');
+          container.style.visibility = 'visible'
+          element.checked = true;
+        }
       });
     });
     this.querySelector('#show-t-contour')!.addEventListener(
@@ -479,7 +490,7 @@ class GANLab extends GANLabPolymer {
     const trueSampleProviderBuilder =
       new ganlab_input_providers.GANLabTrueSampleProviderBuilder(
         ATLAS_SIZE, this.selectedShapeName,
-        drawingPositions, this.sampleFromTrueDistribution, BATCH_SIZE);
+        drawingPositions, BATCH_SIZE);
     trueSampleProviderBuilder.generateAtlas();
     this.trueSampleProvider = trueSampleProviderBuilder.getInputProvider();
     this.trueSampleProviderFixed =
@@ -572,71 +583,6 @@ class GANLab extends GANLabPolymer {
       });
     }
   }
-  
-  private sampleFromTrueDistribution(
-    selectedShapeName: string, drawingPositions: Array<[number, number]>) {
-    const rand = Math.random();
-    switch (selectedShapeName) {
-      case 'drawing': {
-        const index = Math.floor(drawingPositions.length * rand);
-        return [
-          drawingPositions[index][0] +
-          0.02 * ganlab_input_providers.randNormal(),
-          drawingPositions[index][1] +
-          0.02 * ganlab_input_providers.randNormal()
-        ];
-      }
-      case 'line': {
-        return [
-          0.8 - 0.75 * rand + 0.01 * ganlab_input_providers.randNormal(),
-          0.6 + 0.3 * rand + 0.01 * ganlab_input_providers.randNormal()
-        ];
-      }
-      case 'gaussians': {
-        if (rand < 0.5) {
-          return [
-            0.3 + 0.1 * ganlab_input_providers.randNormal(),
-            0.7 + 0.1 * ganlab_input_providers.randNormal()
-          ];
-        } else {
-          return [
-            0.7 + 0.05 * ganlab_input_providers.randNormal(),
-            0.4 + 0.2 * ganlab_input_providers.randNormal()
-          ];
-        }
-      }
-      case 'ring': {
-        return [
-          0.5 + 0.3 * Math.cos(rand * Math.PI * 2) +
-          0.025 * ganlab_input_providers.randNormal(),
-          0.45 + 0.25 * Math.sin(rand * Math.PI * 2) +
-          0.025 * ganlab_input_providers.randNormal(),
-        ];
-      }
-      case 'disjoint': {
-        const stdev = 0.025;
-        if (rand < 0.333) {
-          return [
-            0.35 + stdev * ganlab_input_providers.randNormal(),
-            0.75 + stdev * ganlab_input_providers.randNormal()
-          ];
-        } else if (rand < 0.666) {
-          return [
-            0.75 + stdev * ganlab_input_providers.randNormal(),
-            0.6 + stdev * ganlab_input_providers.randNormal()
-          ];
-        } else {
-          return [
-            0.45 + stdev * ganlab_input_providers.randNormal(),
-            0.35 + stdev * ganlab_input_providers.randNormal()
-          ];
-        }
-      }
-      default: {
-        throw new Error('Invalid true distribution');
-      }
-    }
-  }
 
   private visualizeTrueDistribution(inputAtlasList: number[]) {
     const color = scaleSequential(interpolateGreens)
@@ -713,13 +659,17 @@ class GANLab extends GANLabPolymer {
   }
 
   private onClickFinishDrawingButton() {
-    const drawingElement =
-      this.querySelector('#drawing-container') as HTMLElement;
-    drawingElement.style.display = 'none';
-    const drawingBackgroundElement =
-      this.querySelector('#drawing-disable-background') as HTMLDivElement;
-    drawingBackgroundElement.style.display = 'none';
-    this.createExperiment();
+    if (this.drawing.drawingPositions.length === 0) {
+      alert('Draw something on canvas');
+    } else {
+      const drawingElement =
+        this.querySelector('#drawing-container') as HTMLElement;
+      drawingElement.style.display = 'none';
+      const drawingBackgroundElement =
+        this.querySelector('#drawing-disable-background') as HTMLDivElement;
+      drawingBackgroundElement.style.display = 'none';
+      this.createExperiment();
+    }
   }
 
   private disabledPretrainedMode() {
@@ -1717,8 +1667,8 @@ class GANLab extends GANLabPolymer {
       this.evalChart.destroy();
     }
     const evalChartSpecification = [
-      { label: 'KL Divergence (grid)', color: 'rgba(220, 80, 20, 0.5)' },
-      { label: 'JS Divergence (grid)', color: 'rgba(200, 150, 10, 0.5)' }
+      { label: 'KL Divergence (by grid)', color: 'rgba(220, 80, 20, 0.5)' },
+      { label: 'JS Divergence (by grid)', color: 'rgba(200, 150, 10, 0.5)' }
     ];
     this.evalChart = this.createChart(
       'eval-chart', this.evalChartData, evalChartSpecification, 0);
@@ -1726,7 +1676,7 @@ class GANLab extends GANLabPolymer {
 
   private updateChartData(data: ChartData[][], xVal: number, yList: number[]) {
     for (let i = 0; i < yList.length; ++i) {
-      data[i].push({ x: xVal, y: yList[i] });
+      data[i].push({ x: xVal, y: yList[i].toFixed(3) });
     }
   }
 
@@ -1739,13 +1689,14 @@ class GANLab extends GANLabPolymer {
     const chartDatasets = specification.map((chartSpec, i) => {
       return {
         data: chartData[i],
-        fill: false,
-        label: chartSpec.label,
-        pointRadius: 0,
+        backgroundColor: chartSpec.color,
         borderColor: chartSpec.color,
         borderWidth: 1,
+        fill: false,
+        label: chartSpec.label,
         lineTension: 0,
-        pointHitRadius: 8
+        pointHitRadius: 8,
+        pointRadius: 0
       };
     });
 
@@ -1754,6 +1705,9 @@ class GANLab extends GANLabPolymer {
       data: { datasets: chartDatasets },
       options: {
         animation: { duration: 0 },
+        legend: {
+          labels: { boxWidth: 10 }
+        },
         responsive: false,
         scales: {
           xAxes: [{ type: 'linear', position: 'bottom' }],

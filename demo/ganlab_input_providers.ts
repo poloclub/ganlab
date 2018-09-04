@@ -71,7 +71,7 @@ export class GANLabTrueSampleProviderBuilder extends
     private atlasSize: number,
     private selectedShapeName: string,
     private drawingPositions: Array<[number, number]>,
-    private sampleFromTrueDistribution: Function, batchSize: number) {
+    batchSize: number) {
     super(batchSize);
     this.inputAtlasList = [];
   }
@@ -106,6 +106,77 @@ export class GANLabTrueSampleProviderBuilder extends
 
   getInputAtlas(): number[] {
     return this.inputAtlasList;
+  }
+  
+  private sampleFromTrueDistribution(
+    selectedShapeName: string, drawingPositions: Array<[number, number]>) {
+    const rand = Math.random();
+    switch (selectedShapeName) {
+      case 'drawing': {
+        const index = Math.floor(drawingPositions.length * rand);
+        return [
+          drawingPositions[index][0] +
+          0.02 * this.randNormal(),
+          drawingPositions[index][1] +
+          0.02 * this.randNormal()
+        ];
+      }
+      case 'line': {
+        return [
+          0.8 - 0.75 * rand + 0.01 * this.randNormal(),
+          0.6 + 0.3 * rand + 0.01 * this.randNormal()
+        ];
+      }
+      case 'gaussians': {
+        if (rand < 0.5) {
+          return [
+            0.3 + 0.1 * this.randNormal(),
+            0.7 + 0.1 * this.randNormal()
+          ];
+        } else {
+          return [
+            0.7 + 0.05 * this.randNormal(),
+            0.4 + 0.2 * this.randNormal()
+          ];
+        }
+      }
+      case 'ring': {
+        return [
+          0.5 + 0.3 * Math.cos(rand * Math.PI * 2) +
+          0.025 * this.randNormal(),
+          0.45 + 0.25 * Math.sin(rand * Math.PI * 2) +
+          0.025 * this.randNormal(),
+        ];
+      }
+      case 'disjoint': {
+        const stdev = 0.025;
+        if (rand < 0.333) {
+          return [
+            0.35 + stdev * this.randNormal(),
+            0.75 + stdev * this.randNormal()
+          ];
+        } else if (rand < 0.666) {
+          return [
+            0.75 + stdev * this.randNormal(),
+            0.6 + stdev * this.randNormal()
+          ];
+        } else {
+          return [
+            0.45 + stdev * this.randNormal(),
+            0.35 + stdev * this.randNormal()
+          ];
+        }
+      }
+      default: {
+        throw new Error('Invalid true distribution');
+      }
+    }
+  }
+
+  randNormal() {
+    const u = 1 - Math.random();
+    const v = 1 - Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   }
 }
 
@@ -223,10 +294,4 @@ export class GANLabUniformSampleProviderBuilder extends
       }
     };
   }
-}
-
-export function randNormal() {
-  const u = 1 - Math.random();
-  const v = 1 - Math.random();
-  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }

@@ -8,7 +8,7 @@
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
-  <script src="../support.js"></script>
+  <script src="../lib/support.js"></script>
   
   <title>GAN Lab: Play with Generative Adversarial Networks in Your Browser!</title>
   <style>
@@ -20,18 +20,60 @@
     body {
       font-family: "Roboto", "Helvetica", "Arial", sans-serif;
       margin: 0;
-      min-width: 1402px;
+      min-width: 1442px;
       width: 100%;
       height: 100%;
+      --discriminator-color: rgb(68, 124, 228);
+      --generator-color: rgb(163, 62, 189);
+      --gradient-color: rgb(196, 20, 219);
+      --real-data-color: rgb(0, 136, 55);
+    }
+  
+    #top-bar {
+      background-color: #183D4E;
+      color: #f5f5f5;
+      font-size: 16px;
+      padding: 7px 0 6px;
     }
 
-    #top-notice-bar {
-      background-color: rgb(248, 72, 66);
-      color: #fff;
-      font-size: 16px;
-      padding: 20px 30px;
+    #top-bar-panel-container {
+      align-items: center;
+      display: flex;
+      margin-left: auto;
+      margin-right: auto;
+      justify-content: space-between;
+      width: 1442px;
+    }
+
+    #tool-description {
+      padding-left: 20px;
+    }
+
+    #source-link {
+      padding-right: 20px;
+    }
+
+    #source-link a {
+      color: #f0f0f0;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    #loading {
+      background-color: #f7f7f7;
+      font-size: 48px;
+      height: 120px;
+      margin-top: 80px;
+      position: absolute;
       text-align: center;
-    }    
+      width: 100%;
+      z-index: -1;
+    }
+
+    #demo {      
+      min-height: 200px;
+      width: 100%;
+    }
 
     #description {
       margin-bottom: 60px;
@@ -53,7 +95,11 @@
       font-size: 24px;
       font-weight: 450;
       margin-bottom: 8px;
-      margin-top: 36px;
+      margin-top: 44px;
+    }
+
+    #description p {
+      margin: 16px 0;
     }
 
     #description p, 
@@ -102,18 +148,33 @@
     #description div.citation {
       font-size: 14px;
       line-height: 20px;
-      margin-top: -10px;
-      padding: 0px 10px;
+      margin-top: 0px;
+      padding: 20px 10px 0 110px;
     }
   </style>
 </head>
 
 <body>
-  <div id="top-notice-bar">
-      Please note that the demo in this page is provided for reviewers of our research paper under review. GAN Lab will be officially announced by the authors later.
+  <div id="top-bar">
+    <div id="top-bar-panel-container" class="panel-container">
+      <div id="tool-description">
+        Play with Generated Adversarial Networks (GANs) in your browser!          
+      </div>
+      <div id="source-link">
+        <a href="https://github.com/poloclub/ganlab" title="Source on GitHub">
+          Fork us on GitHub&nbsp;
+          <img src="images/github-mark.png" />
+        </a>
+      </div>
+    </div>
+  </div>      
+      
+  <div id="demo">
+    <div id="loading">
+      Loading...
+    </div>
+    <gan-lab></gan-lab>
   </div>
-  
-  <gan-lab></gan-lab>
 
   <div id="description">
     <h2>What is a GAN?</h2>
@@ -135,7 +196,7 @@
     </p>
     
     <p>      
-      The big insights that defines a GAN is to set up this modeling problem as a kind of contest. This is where the "adversarial" part of the name comes from. The key idea is to build not one, but two competing networks: a <span style="color: rgb(163, 62, 189);"><strong>generator</strong></span> and a <span style="color: rgb(68, 124, 228);"><strong>discriminator</strong></span>. The generator tries to create random <span style="color: rgb(163, 62, 189);">synthetic outputs</span> (for instance, images of faces), while the discriminator tries to tell these apart from <span style="color: rgb(0, 136, 55);">real outputs</span> (say, a database of celebrities). The hope is that as the two networks face off, they'll both get better and better&mdash;with the end result being a generator network that produces realistic outputs.
+      The big insights that defines a GAN is to set up this modeling problem as a kind of contest. This is where the "adversarial" part of the name comes from. The key idea is to build not one, but two competing networks: a <span style="color: var(--generator-color);"><strong>generator</strong></span> and a <span style="color: var(--discriminator-color);"><strong>discriminator</strong></span>. The generator tries to create random <span style="color: var(--generator-color);">synthetic outputs</span> (for instance, images of faces), while the discriminator tries to tell these apart from <span style="color: var(--real-data-color);">real outputs</span> (say, a database of celebrities). The hope is that as the two networks face off, they'll both get better and better&mdash;with the end result being a generator network that produces realistic outputs.
     </p>
     
     <p>      
@@ -156,7 +217,7 @@
     </h4>
     
     <p>
-      At top, you can choose a probability distribution for GAN to learn, which we visualize as <span style="color: rgb(0, 136, 55);">a set of data samples</span>. Once you choose one, we show them at two places: a smaller version in the <em>model overview graph</em> view on the left; and a larger version in the <em>layered distributions</em> view on the right.
+      At top, you can choose a probability distribution for GAN to learn, which we visualize as <span style="color: var(--real-data-color);">a set of data samples</span>. Once you choose one, we show them at two places: a smaller version in the <em>model overview graph</em> view on the left; and a larger version in the <em>layered distributions</em> view on the right.
     </p>
     
     <div class="supporting-figure">
@@ -179,7 +240,7 @@
     </h4>
     
     <p>
-      To start training the GAN model, click the play button (<img class="icon" src="figures/figure-icon-play.png" />) on the toolbar. Besides <span style="color: rgb(0, 136, 55);">real samples</span>  from your chosen distribution, you'll also see <span style="color: rgb(163, 62, 189);">fake samples</span> that are generated by the model. Fake samples' positions continually updated as the training progresses. A perfect GAN will create fake samples whose distribution is indistinguishable from that of the real samples. When that happens, in the layered distributions view, you will see the two distributions nicely overlap.
+      To start training the GAN model, click the play button (<img class="icon" src="figures/figure-icon-play.png" />) on the toolbar. Besides <span style="color: var(--real-data-color);">real samples</span>  from your chosen distribution, you'll also see <span style="color: var(--generator-color);">fake samples</span> that are generated by the model. Fake samples' positions continually updated as the training progresses. A perfect GAN will create fake samples whose distribution is indistinguishable from that of the real samples. When that happens, in the layered distributions view, you will see the two distributions nicely overlap.
     </p>
     
     <div class="supporting-figure">
@@ -194,12 +255,12 @@
     </h4>
     
     <p>
-      Recall that the <span style="color: rgb(163, 62, 189);">generator</span> and <span style="color: rgb(68, 124, 228);">discriminator</span> within a GAN is having a little contest, competing against each other, iteratively updating the <span style="color: rgb(163, 62, 189);">fake samples</span> to become more similar to the <span style="color: rgb(0, 136, 55);">real ones</span>. GAN Lab visualizes the interactions between them. 
+      Recall that the <span style="color: var(--generator-color);">generator</span> and <span style="color: var(--discriminator-color);">discriminator</span> within a GAN is having a little contest, competing against each other, iteratively updating the <span style="color: var(--generator-color);">fake samples</span> to become more similar to the <span style="color: var(--real-data-color);">real ones</span>. GAN Lab visualizes the interactions between them. 
     </p>
     
     <p>
       <strong>Generator.</strong>
-      As described earlier, the <span style="color: rgb(163, 62, 189);">generator</span> is a function that transforms a random input into a synthetic output. In GAN Lab, a random input is a 2D sample with a (x, y) value (drawn from a uniform or Gaussian distribution), and the output is also a 2D sample, but mapped into a different position, which is a <span style="color: rgb(163, 62, 189);">fake sample</span>. One way to visualize this mapping is using <em>manifold</em> <small><a href="http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/">[Olah, 2014]</a></small>. The input space is represented as a uniform square grid. As the function maps positions in the input space into new positions, if we visualize the output, the whole grid, now consisting of irregular quadrangles, would look like a warped version of the original regular grid. The area (or density) of each (warped) cell has now changed, and we encode the density as opacity, so a higher opacity means more samples in smaller space. A very fine-grained manifold will look almost the same as the visualization of the fake samples. This visualization shows how the generator learns a mapping function to make its output look similar to the distribution of the <span style="color: rgb(0, 136, 55);">real samples</span>.
+      As described earlier, the <span style="color: var(--generator-color);">generator</span> is a function that transforms a random input into a synthetic output. In GAN Lab, a random input is a 2D sample with a (x, y) value (drawn from a uniform or Gaussian distribution), and the output is also a 2D sample, but mapped into a different position, which is a <span style="color: var(--generator-color);">fake sample</span>. One way to visualize this mapping is using <em>manifold</em> <small><a href="http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/">[Olah, 2014]</a></small>. The input space is represented as a uniform square grid. As the function maps positions in the input space into new positions, if we visualize the output, the whole grid, now consisting of irregular quadrangles, would look like a warped version of the original regular grid. The area (or density) of each (warped) cell has now changed, and we encode the density as opacity, so a higher opacity means more samples in smaller space. A very fine-grained manifold will look almost the same as the visualization of the fake samples. This visualization shows how the generator learns a mapping function to make its output look similar to the distribution of the <span style="color: var(--real-data-color);">real samples</span>.
     </p>
     
     <div class="supporting-figure">
@@ -211,7 +272,7 @@
     
     <p>
       <strong>Discriminator.</strong>
-      As the generator creates <span style="color: rgb(163, 62, 189);">fake samples</span>, the <span style="color: rgb(68, 124, 228);">discriminator</span>, a binary classifier, tries to tell them apart from the <span style="color: rgb(0, 136, 55);">real samples</span>. GAN Lab visualizes its decision boundary as a 2D heatmap (similar to <a href="http://playground.tensorflow.org"><em>TensorFlow Playground</em></a>). The background colors of a grid cell encode the confidence values of the classifier's results. <span style="background-color: rgb(0, 136, 55); color: white;">Darker green</span> means that samples in that region are more likely to be real; <span style="background-color: rgb(163, 62, 189); color: white;">darker purple</span>, more likely to be fake. As a GAN approaches the optimum, the whole heatmap will become more <span style="background-color: rgb(117, 117, 117); color: white;">gray</span> overall, signalling that the discriminator can no longer easily distinguish fake examples from the real ones.
+      As the generator creates <span style="color: var(--generator-color);">fake samples</span>, the <span style="color: var(--discriminator-color);">discriminator</span>, a binary classifier, tries to tell them apart from the <span style="color: var(--real-data-color);">real samples</span>. GAN Lab visualizes its decision boundary as a 2D heatmap (similar to <a href="http://playground.tensorflow.org"><em>TensorFlow Playground</em></a>). The background colors of a grid cell encode the confidence values of the classifier's results. <span style="background-color: var(--real-data-color); color: white;">Darker green</span> means that samples in that region are more likely to be real; <span style="background-color: var(--generator-color); color: white;">darker purple</span>, more likely to be fake. As a GAN approaches the optimum, the whole heatmap will become more <span style="background-color: rgb(117, 117, 117); color: white;">gray</span> overall, signalling that the discriminator can no longer easily distinguish fake examples from the real ones.
     </p>
     
     <div class="supporting-figure">
@@ -226,7 +287,7 @@
     </h4>
     
     <p>
-      In a GAN, its two networks influence each other as they iteratively update themselves. A great use for GAN Lab is to use its visualization to learn how the <span style="color: rgb(163, 62, 189);">generator</span> incrementally updates to improve itself to generate fake samples that are increasingly more realistic. The generator does it by trying to fool the <span style="color: rgb(68, 124, 228);">discriminator</span>. The generator's loss value decreases when the discriminator classifies <span style="color: rgb(163, 62, 189);">fake samples</span> as <span style="color: rgb(0, 136, 55);">real</span> (bad for discriminator, but good for generator). GAN Lab visualizes gradients (as <span style="color: rgb(196, 20, 219);">pink lines</span>) for the fake samples such that the generator would achieve its success.
+      In a GAN, its two networks influence each other as they iteratively update themselves. A great use for GAN Lab is to use its visualization to learn how the <span style="color: var(--generator-color);">generator</span> incrementally updates to improve itself to generate fake samples that are increasingly more realistic. The generator does it by trying to fool the <span style="color: var(--discriminator-color);">discriminator</span>. The generator's loss value decreases when the discriminator classifies <span style="color: var(--generator-color);">fake samples</span> as <span style="color: var(--real-data-color);">real</span> (bad for discriminator, but good for generator). GAN Lab visualizes gradients (as <span style="color: var(--gradient-color);">pink lines</span>) for the fake samples such that the generator would achieve its success.
     </p>
 
     <div class="supporting-figure">
@@ -237,7 +298,7 @@
     </div>
     
     <p>
-      This way, the <span style="color: rgb(163, 62, 189);">generator</span> gradually improves to produce samples that are even more realistic. Once the fake samples are updated, the <span style="color: rgb(68, 124, 228);">discriminator</span> will update accordingly to finetune its decision boundary, and awaits the next batch of fake samples that try to fool itself. This iterative update process continues until the discriminator cannot tell <span style="color: rgb(0, 136, 55);">real</span> and <span style="color: rgb(163, 62, 189);">fake</span> samples apart.
+      This way, the <span style="color: var(--generator-color);">generator</span> gradually improves to produce samples that are even more realistic. Once the fake samples are updated, the <span style="color: var(--discriminator-color);">discriminator</span> will update accordingly to finetune its decision boundary, and awaits the next batch of fake samples that try to fool itself. This iterative update process continues until the discriminator cannot tell <span style="color: var(--real-data-color);">real</span> and <span style="color: var(--generator-color);">fake</span> samples apart.
     </p>
     
     <h4>
@@ -326,7 +387,7 @@
       <a href="http://minsuk.com">Minsuk Kahng</a>,
       <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>, 
       <a href="https://www.cc.gatech.edu/~dchau/">Polo Chau</a>, 
-      <a href="http://fernandaviegas.com/">Fernanda Viégas</a>, and 
+      <a href="http://www.fernandaviegas.com/">Fernanda Viégas</a>, and 
       <a href="http://www.bewitched.com/">Martin Wattenberg</a>,
       which was the result of a research collaboration between 
       Georgia Tech and Google Brain.
@@ -339,17 +400,21 @@
       for their feedback.
     </p>
     
-    <p>
+    <p style="margin-bottom: 0;">
       For more information, check out 
       <a href="http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
         our research paper</a>:     
     </p>
 
-    <div class="citation">
+    <a href="http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
+      <img src="figures/figure-paper-screenshot.png" style="float: left;" />
+    </a>
+
+    <div class="citation">      
       <a href="http://minsuk.com">Minsuk Kahng</a>,
       <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>, 
       <a href="https://www.cc.gatech.edu/~dchau/">Polo Chau</a>, 
-      <a href="http://fernandaviegas.com/">Fernanda Viégas</a>, and 
+      <a href="http://www.fernandaviegas.com/">Fernanda Viégas</a>, and 
       <a href="http://www.bewitched.com/">Martin Wattenberg</a>.
       "GAN Lab: Understanding Complex Deep Generative Models using 
       Interactive Visual Experimentation."
