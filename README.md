@@ -74,7 +74,7 @@ GAN Lab was created by
 which was the result of a research collaboration between Georgia Tech and Google Brain/[PAIR](https://ai.google/research/teams/brain/pair).
 We also thank Shan Carter and Daniel Smilkov, 
 [Google Big Picture team](https://research.google.com/bigpicture/) and 
-[Google PAIR](https://ai.google/research/teams/brain/pair), and 
+[Google People + AI Research (PAIR)](https://ai.google/research/teams/brain/pair), and 
 [Georgia Tech Visualization Lab](http://vis.gatech.edu/)
 for their feedback.
  
