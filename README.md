@@ -71,7 +71,7 @@ GAN Lab was created by
 [Polo Chau](https://www.cc.gatech.edu/~dchau/),
 [Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/),
-which was the result of a research collaboration between Georgia Tech and Google Brain.
+which was the result of a research collaboration between Georgia Tech and Google Brain/[PAIR](https://ai.google/research/teams/brain/pair).
 We also thank Shan Carter and Daniel Smilkov, 
 [Google Big Picture team](https://research.google.com/bigpicture/) and 
 [Google PAIR](https://ai.google/research/teams/brain/pair), and 
