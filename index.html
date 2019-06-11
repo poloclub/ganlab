@@ -21269,14 +21269,6 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
       stroke-width: 1;
     }
 
-    .contour {
-      fill: none;
-      opacity: 0.5;
-      stroke: #bbb;
-      stroke-width: 0.5;
-      stroke-linejoin: round;
-    }
-
     #model-visualization-container.any-highlighted .model-component {
       opacity: 0.4;
     }
@@ -21415,19 +21407,19 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
           <div class="top-column-title">Data Distribution</div>
           <div id="distribution-image-list">
             <div class="distribution-image">
-              <img class="distribution-item" data-distribution-name="line" title="Simple line" src="images/distribution-line.png">
+              <img class="distribution-item" id="distribution-item-line" data-distribution-name="line" title="Simple line" src="images/distribution-line.png">
             </div>
             <div class="distribution-image">
-              <img class="distribution-item selected" data-distribution-name="gaussians" title="Mixture of Gaussians" src="images/distribution-gaussians.png">
+              <img class="distribution-item selected" id="distribution-item-gaussians" data-distribution-name="gaussians" title="Mixture of Gaussians" src="images/distribution-gaussians.png">
             </div>
             <div class="distribution-image">
-              <img class="distribution-item" data-distribution-name="ring" title="Ring" src="images/distribution-ring.png">
+              <img class="distribution-item" id="distribution-item-ring" data-distribution-name="ring" title="Ring" src="images/distribution-ring.png">
             </div>
             <div class="distribution-image">
-              <img class="distribution-item" data-distribution-name="disjoint" title="3 disjoint regions" src="images/distribution-disjoint.png">
+              <img class="distribution-item" id="distribution-item-disjoint" data-distribution-name="disjoint" title="3 disjoint regions" src="images/distribution-disjoint.png">
             </div>
             <div class="distribution-image">
-              <i class="distribution-item material-icons" data-distribution-name="drawing" title="Draw one by yourself">brush</i>
+              <i class="distribution-item material-icons" id="distribution-item-drawing" data-distribution-name="drawing" title="Draw one by yourself">brush</i>
             </div>
           </div>
           <div id="distribution-selection-checkbox">
@@ -21439,18 +21431,20 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
 
         <div id="timeline-controls" class="top-panel-item">
           <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton" id="reset-button" title="Reset the model">
-            <i class="material-icons">replay</i>
+            <i class="material-icons" id="button-top-reset">replay</i>
           </button>
           <button class="mdl-button mdl-js-button mdl-button--fab 
             mdl-button--colored ui-playButton" id="play-pause-button" title="Run/Pause training">
-            <i class="material-icons">play_arrow</i>
-            <i class="material-icons">pause</i>
+            <i class="material-icons" id="button-top-play">play_arrow</i>
+            <i class="material-icons" id="button-top-pause">pause</i>
           </button>
           <button class="mdl-button mdl-js-button mdl-button--icon" id="slow-step" title="Slow-motion mode" style="margin-left: 5px">
-            <i class="material-icons">slow_motion_video</i>
+            <i class="material-icons" id="button-top-slow">
+              slow_motion_video
+            </i>
           </button>
           <button class="mdl-button mdl-js-button mdl-button--icon ui-stepButton" id="next-step-button" title="Train for one epoch" style="margin-left: 5px">
-            <i class="material-icons">skip_next</i>
+            <i class="material-icons" id="button-top-next">skip_next</i>
           </button>
 
           <div id="step-buttons" style="display: none">
@@ -21485,7 +21479,7 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
           <div class="panel-title" style="padding-left: 5px;" title="Shows the architecture of a model and data flow">
             Model Overview Graph
             <button class="mdl-button mdl-js-button mdl-button--icon" id="edit-model-button" title="Show/hide hyperparameters">
-              <i class="material-icons">mode_edit</i>
+              <i class="material-icons" id="button-graph-edit">mode_edit</i>
             </button>
           </div>
 
@@ -21544,11 +21538,15 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-add-button" title="Increase a step per epoch">
-                      <i class="material-icons">keyboard_arrow_up</i>
+                      <i class="material-icons" id="button-k-d-steps-up">
+                        keyboard_arrow_up
+                      </i>
                     </button>
                     <br>
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="k-d-steps-remove-button" title="Decrease a step per iter">
-                      <i class="material-icons">keyboard_arrow_down</i>
+                      <i class="material-icons" id="button-k-d-steps-down">
+                        keyboard_arrow_down
+                      </i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
@@ -21562,11 +21560,15 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 <div class="config-item" style="width: 150px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-add-button" title="Increase a step per epoch">
-                      <i class="material-icons">keyboard_arrow_up</i>
+                      <i class="material-icons" id="button-k-g-steps-up">
+                        keyboard_arrow_up
+                      </i>
                     </button>
                     <br>
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="k-g-steps-remove-button" title="Decrease a step per epoch">
-                      <i class="material-icons">keyboard_arrow_down</i>
+                      <i class="material-icons" id="button-k-g-steps-down">
+                        keyboard_arrow_down
+                      </i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
@@ -21671,11 +21673,15 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="d-layers-add-button" title="Add a layer">
-                      <i class="material-icons">keyboard_arrow_up</i>
+                      <i class="material-icons" id="button-d-layers-up">
+                        keyboard_arrow_up
+                      </i>
                     </button>
                     <br>
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="d-layers-remove-button" title="Remove a layer">
-                      <i class="material-icons">keyboard_arrow_down</i>
+                      <i class="material-icons" id="button-d-layers-down">
+                        keyboard_arrow_down
+                      </i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
@@ -21684,11 +21690,15 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                   </div>
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="d-neurons-add-button" title="Add a neuron for each layer">
-                      <i class="material-icons">keyboard_arrow_up</i>
+                      <i class="material-icons" id="button-d-neurons-up">
+                        keyboard_arrow_up
+                      </i>
                     </button>
                     <br>
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="d-neurons-remove-button" title="Remove a neuron for each layer">
-                      <i class="material-icons">keyboard_arrow_down</i>
+                      <i class="material-icons" id="button-d-neurons-down">
+                        keyboard_arrow_down
+                      </i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
@@ -21711,11 +21721,15 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 <div class="config-item" style="width: 175px">
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="g-layers-add-button" title="Add a layer">
-                      <i class="material-icons">keyboard_arrow_up</i>
+                      <i class="material-icons" id="button-g-layer-up">
+                        keyboard_arrow_up
+                      </i>
                     </button>
                     <br>
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="g-layers-remove-button" title="Remove a layer">
-                      <i class="material-icons">keyboard_arrow_down</i>
+                      <i class="material-icons" id="button-g-layer-down">
+                        keyboard_arrow_down
+                      </i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
@@ -21724,11 +21738,15 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                   </div>
                   <div class="up-down-buttons">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="g-neurons-add-button" title="Add a neuron for each layer">
-                      <i class="material-icons">keyboard_arrow_up</i>
+                      <i class="material-icons" id="button-g-neurons-up">
+                        keyboard_arrow_up
+                      </i>
                     </button>
                     <br>
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="g-neurons-remove-button" title="Remove a neuron for each layer">
-                      <i class="material-icons">keyboard_arrow_down</i>
+                      <i class="material-icons" id="button-g-neurons-down">
+                        keyboard_arrow_down
+                      </i>
                     </button>
                   </div>
                   <div class="up-down-buttons">
@@ -21746,15 +21764,6 @@ This element has `role="listitem"` by default. Depending on usage, it may be mor
                 <div class="component-label">Gradients
                   <div id="g-gradients-toggle" class="checkbox-toggle" title="show/hide gradients for generator" style="right: 13px; top: -1px">
                     <paper-checkbox type="checkbox" id="show-g-gradients" checked="">
-                    </paper-checkbox>
-                  </div>
-                </div>
-              </div>
-
-              <div id="component-true-distribution" class="model-component" style="top: 105px; left: 285px; width: 55px; display: none;">
-                <div>
-                  <div id="t-contour-toggle" class="checkbox-toggle" title="show/hide real samples' density contour" style="right: 1px; top: 6px">
-                    <paper-checkbox type="checkbox" id="show-t-contour">
                     </paper-checkbox>
                   </div>
                 </div>
@@ -21858,10 +21867,9 @@ multiple layers. The layers can be turned on or off using checkboxes.">
             <svg id="vis-svg" width="400" height="400">
               <g id="vis-area">
                 <g id="vis-discriminator-output" class="vis-panel">
-                  <rect class="plot-bg" width="400" height="400" x="0" y="0"></rect>
+                  <rect class="plot-bg" id="vis-plot-bg" width="400" height="400" x="0" y="0"></rect>
                 </g>
                 <g id="vis-samples" class="vis-panel">
-                  <g id="vis-true-samples-contour" class="contour" style="visibility: hidden"></g>
                   <g id="vis-true-samples"></g>
                   <g id="vis-generator-gradients"></g>
                   <g id="vis-generated-samples"></g>
