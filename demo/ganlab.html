@@ -492,14 +492,6 @@
       stroke-width: 1;
     }
 
-    .contour {
-      fill: none;
-      opacity: 0.5;
-      stroke: #bbb;
-      stroke-width: 0.5;
-      stroke-linejoin: round;
-    }
-
     #model-visualization-container.any-highlighted .model-component {
       opacity: 0.4;
     }
@@ -1106,18 +1098,6 @@
                 </div>
               </div>
 
-              <div id="component-true-distribution" class="model-component"
-                style="top: 105px; left: 285px; width: 55px; display: none;">
-                <div>
-                  <div id="t-contour-toggle" class="checkbox-toggle"
-                    title="show/hide real samples' density contour"
-                    style="right: 1px; top: 6px">
-                    <paper-checkbox type="checkbox" id="show-t-contour">
-                    </paper-checkbox>
-                  </div>
-                </div>
-              </div>
-
               <div id="component-true-samples" class="model-component"
                 style="top: 136px; left: 255px">
                 <div class="component-sub-label">Real
@@ -1244,8 +1224,6 @@ multiple layers. The layers can be turned on or off using checkboxes.">
                     width="400" height="400" x="0" y="0"></rect>
                 </g>
                 <g id="vis-samples" class="vis-panel">
-                  <g id="vis-true-samples-contour" class="contour" 
-                    style="visibility: hidden"></g>
                   <g id="vis-true-samples"></g>
                   <g id="vis-generator-gradients"></g>
                   <g id="vis-generated-samples"></g>
