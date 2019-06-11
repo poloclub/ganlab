@@ -1,6 +1,4 @@
 import * as d3 from 'd3-selection';
-import { contourDensity } from 'd3-contour';
-import { geoPath } from 'd3-geo';
 import { scaleSequential } from 'd3-scale';
 import { interpolateGreens, interpolatePRGn } from 'd3-scale-chromatic';
 import { line } from 'd3-shape';
@@ -351,14 +349,6 @@ class GANLab extends GANLabPolymer {
         }
       });
     });
-    this.querySelector('#show-t-contour')!.addEventListener(
-      'change', (event: Event) => {
-        const container =
-          this.querySelector('#vis-true-samples-contour') as SVGGElement;
-        // tslint:disable-next-line:no-any
-        container.style.visibility =
-          (event.target as any).checked ? 'visible' : 'hidden';
-      });
 
     // Pre-trained checkbox.
     this.usePretrained = true;
@@ -457,7 +447,6 @@ class GANLab extends GANLabPolymer {
       d3.select('#vis-true-samples').selectAll('.true-dot'),
       d3.select('#svg-true-samples').selectAll('.true-dot'),
       d3.select('#svg-true-prediction').selectAll('.true-dot'),
-      d3.select('#vis-true-samples-contour').selectAll('path'),
       d3.select('#svg-noise').selectAll('.noise-dot'),
       d3.select('#vis-generated-samples').selectAll('.generated-dot'),
       d3.select('#svg-generated-samples').selectAll('.generated-dot'),
@@ -593,22 +582,6 @@ class GANLab extends GANLabPolymer {
       const values = inputAtlasList.splice(0, 2);
       trueDistribution.push([values[0], values[1]]);
     }
-
-    const contour = contourDensity()
-      .x((d: number[]) => d[0] * this.plotSizePx)
-      .y((d: number[]) => (1.0 - d[1]) * this.plotSizePx)
-      .size([this.plotSizePx, this.plotSizePx])
-      .bandwidth(15)
-      .thresholds(5);
-
-    d3.select('#vis-true-samples-contour')
-      .selectAll('path')
-      .data(contour(trueDistribution))
-      .enter()
-      .append('path')
-      .attr('fill', (d: any) => color(d.value))
-      .attr('data-value', (d: any) => d.value)
-      .attr('d', geoPath());
 
     const trueDotsElementList = [
       '#vis-true-samples',
@@ -1676,7 +1649,7 @@ class GANLab extends GANLabPolymer {
 
   private updateChartData(data: ChartData[][], xVal: number, yList: number[]) {
     for (let i = 0; i < yList.length; ++i) {
-      data[i].push({ x: xVal, y: yList[i].toFixed(3) });
+      data[i].push({ x: xVal, y: yList[i] ? yList[i].toFixed(3) : null});
     }
   }
 
