@@ -1676,7 +1676,7 @@ class GANLab extends GANLabPolymer {
 
   private updateChartData(data: ChartData[][], xVal: number, yList: number[]) {
     for (let i = 0; i < yList.length; ++i) {
-      data[i].push({ x: xVal, y: yList[i].toFixed(3) });
+      data[i].push({ x: xVal, y: yList[i] ? yList[i].toFixed(3) : null});
     }
   }
 
