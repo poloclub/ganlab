@@ -22015,7 +22015,6 @@ inializePolymerPage();
 <script src="https://www.gstatic.com/firebasejs/6.1.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/6.1.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/6.1.1/firebase-firestore.js"></script>
-<script src="lib/logging.js"></script>
 <style>
     html {
       width: 100%;
@@ -22168,6 +22167,24 @@ inializePolymerPage();
       margin-top: 0px;
       padding: 20px 10px 0 110px;
     }
+
+    #logging-notice-container {
+      background-color: #f3f3f3;
+    }
+
+    #logging-notice {
+      color: #999;
+      font-size: 11px;
+      line-height: 13px;
+      margin: 0 auto;
+      max-width: 1402px;
+      padding: 2px 0;
+    }
+
+    #no-logging {
+      cursor: pointer;
+      text-decoration: underline;
+    }
   </style></div>
   <div id="top-bar">
     <div id="top-bar-panel-container" class="panel-container">
@@ -22190,6 +22207,14 @@ inializePolymerPage();
       <small>It may take a few tens of seconds.</small>
     </div>
     <gan-lab></gan-lab>
+  </div>
+
+  <div id="logging-notice-container">
+    <div id="logging-notice">
+      This GAN Lab webpage records anonymous click information (e.g., buttons in the GAN Lab interface clicked).
+      It will be used for studying the usage behavior of users and improving the usability of GAN Lab.
+      If you are not interested in contributing to the study, <span id="no-logging">click here</span> to remove your data.
+    </div>
   </div>
 
   <div id="description">
@@ -22397,7 +22422,7 @@ inializePolymerPage();
     <h2>Who developed GAN Lab?</h2>
     <p>
       GAN Lab was created by 
-      <a href="http://minsuk.com">Minsuk Kahng</a>,
+      <a href="https://minsuk.com">Minsuk Kahng</a>,
       <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>, 
       <a href="https://www.cc.gatech.edu/~dchau/">Polo Chau</a>, 
       <a href="http://www.fernandaviegas.com/">Fernanda Viégas</a>, and 
@@ -22416,16 +22441,16 @@ inializePolymerPage();
     
     <p style="margin-bottom: 0;">
       For more information, check out 
-      <a href="http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
+      <a href="https://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
         our research paper</a>:     
     </p>
 
-    <a href="http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
+    <a href="https://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf">
       <img src="figures/figure-paper-screenshot.png" style="float: left;">
     </a>
 
     <div class="citation">      
-      <a href="http://minsuk.com">Minsuk Kahng</a>,
+      <a href="https://minsuk.com">Minsuk Kahng</a>,
       <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>, 
       <a href="https://www.cc.gatech.edu/~dchau/">Polo Chau</a>, 
       <a href="http://www.fernandaviegas.com/">Fernanda Viégas</a>, and 
@@ -22438,6 +22463,7 @@ inializePolymerPage();
     </div>
   </div>
 
+  <script src="lib/logging.js"></script>
   <script type="text/javascript">
     const tag = document.createElement('script');
     tag.id = 'iframe-demo';
