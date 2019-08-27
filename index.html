@@ -22185,6 +22185,73 @@ inializePolymerPage();
       cursor: pointer;
       text-decoration: underline;
     }
+
+    #survey-ad {
+      background-color: rgb(243, 117, 0);
+      box-shadow: 5px 10px 15px #bbb;
+      color: #fff;
+      font-size: 14px;
+      height: 150px;
+      position: fixed;
+      right: -260px;
+      padding: 24px 15px 10px;
+      text-align: center;
+      bottom: 50px;
+      transition: 0.5s;
+      width: 230px;
+    }
+
+    #survey-ad-title {
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 25px;
+      margin-bottom: 13px;
+      text-align: center;
+    }
+
+    #survey-ad-link {
+      margin-top: 13px;
+      text-align: center;
+    }
+
+    #survey-ad-link a {
+      background-color: rgb(255, 252, 246);
+      border-radius: 5px;
+      color: rgb(235, 113, 0);
+      font-size: 14px;
+      padding: 7px 14px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    #survey-ad-link a:hover {
+      background-color: rgb(255, 233, 187);
+    }
+
+    #survey-ad-close-button {
+      color: rgb(233, 233, 233);
+      cursor: pointer;
+      font-size: 19px;
+      padding: 3px 5px;
+      position: absolute;
+      right: 0;
+      text-align: center;
+      top: 0;
+    }
+
+    #survey-ad-open-button {
+      background-color: rgb(255, 215, 107);
+      bottom: 10px;
+      color: #fff;
+      cursor: pointer;
+      display: none;
+      font-size: 18px;
+      padding: 5px 1px;
+      position: absolute;
+      left: 0;
+      text-align: center;
+      width: 16px;
+    }
   </style></div>
   <div id="top-bar">
     <div id="top-bar-panel-container" class="panel-container">
@@ -22215,6 +22282,14 @@ inializePolymerPage();
       It will be used for studying the usage behavior of users and improving the usability of GAN Lab.
       If you are not interested in contributing to the study, <span id="no-logging">click here</span> to remove your data.
     </div>
+  </div>
+
+  <div id="survey-ad">
+    <div id="survey-ad-title">What do you think about GAN Lab?</div>
+    <div id="survey-ad-close-button">x</div>
+    <div>Take our <em>short</em> survey to help us evaluate and improve it.</div>
+    <div id="survey-ad-link"><a href="https://forms.gle/KcanrLeEQpBJ5jEV9" target="_blank">Start the Survey</a></div>
+    <div id="survey-ad-open-button">&lt;</div>
   </div>
 
   <div id="description">
@@ -22491,6 +22566,20 @@ inializePolymerPage();
         player.playVideo();
       });
     });
+
+	setTimeout(function() {
+	  document.getElementById("survey-ad").style.right = "0";
+	}, 180000);
+
+	document.getElementById("survey-ad-close-button").addEventListener("click", function() {
+	  document.getElementById("survey-ad").style.right = "-244px";
+	  document.getElementById("survey-ad-open-button").style.display = "block";
+	});
+
+	document.getElementById("survey-ad-open-button").addEventListener("click", function() {
+	  document.getElementById("survey-ad").style.right = "0"; 
+	  document.getElementById("survey-ad-open-button").style.display = "none"; 
+	});
   </script>
 
 
