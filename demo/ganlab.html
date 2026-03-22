@@ -111,10 +111,32 @@
       background: #183D4E;
     }
 
+    .mdl-button--fab,
+    .mdl-button--icon {
+      align-items: center;
+      background: none;
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      height: 40px;
+      justify-content: center;
+      width: 40px;
+    }
+
+    .mdl-button--icon:hover {
+      background: #ddd;
+    }
+
+    #play-pause-button {
+      height: 56px;
+      width: 56px;
+    }
+
     #play-pause-button .material-icons {
       color: white;
       font-size: 36px;
-      transform: translate(-18px,-12px);
+      transform: none;
     }
 
     #play-pause-button .material-icons:nth-of-type(2) {
