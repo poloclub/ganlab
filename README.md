@@ -66,25 +66,26 @@ and compiles the code for you.
 ## Credit
 
 GAN Lab was created by 
-[Minsuk Kahng](http://minsuk.com),
-[Nikhil Thorat](https://twitter.com/nsthorat),
-[Polo Chau](https://www.cc.gatech.edu/~dchau/),
+[Minsuk Kahng](https://minsuk.com),
+[Nikhil Thorat](https://nikubaba.com),
+[Polo Chau](https://poloclub.github.io/polochau/),
 [Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/),
-which was the result of a research collaboration between Georgia Tech and Google Brain/[PAIR](https://ai.google/research/teams/brain/pair).
+which was the result of a research collaboration between Georgia Tech and Google Brain/[PAIR](https://pair.withgoogle.com).
 We also thank Shan Carter and Daniel Smilkov, 
 [Google Big Picture team](https://research.google.com/bigpicture/) and 
-[Google People + AI Research (PAIR)](https://ai.google/research/teams/brain/pair), and 
+[Google People + AI Research (PAIR)](https://pair.withgoogle.com), and 
 [Georgia Tech Visualization Lab](http://vis.gatech.edu/)
 for their feedback.
  
 For more information, check out 
-[our research paper](http://minsuk.com/research/papers/kahng-ganlab-vast2018.pdf):     
+[our research paper](http://minsuk.com/papers/kahng-ganlab-vis2018.pdf):     
  
-[Minsuk Kahng](http://minsuk.com),
-[Nikhil Thorat](https://twitter.com/nsthorat),
-[Polo Chau](https://www.cc.gatech.edu/~dchau/),
+[Minsuk Kahng](https://minsuk.com),
+[Nikhil Thorat](https://nikubaba.com),
+[Polo Chau](https://poloclub.github.io/polochau/),
 [Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/).
 "GAN Lab: Understanding Complex Deep Generative Models using Interactive Visual Experimentation."
-*IEEE Transactions on Visualization and Computer Graphics, 25(1) ([VAST 2018](http://ieeevis.org/year/2018/welcome))*, Jan. 2019.
+*IEEE Transactions on Visualization and Computer Graphics, 25(1) (VIS 2018)*, Jan. 2019.
+[doi.org/10.1109/TVCG.2018.2864500](https://doi.org/10.1109/TVCG.2018.2864500)
