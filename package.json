@@ -86,7 +86,7 @@
     "poi": "~9.6.8",
     "poi-preset-typescript": "~9.0.2",
     "polymer-bundler": "~3.0.1",
-    "shelljs": "~0.7.8",
+    "shelljs": "~0.8.5",
     "tsify": "~3.0.3",
     "typescript": "2.7.2",
     "uglifyjs": "~2.4.11",
