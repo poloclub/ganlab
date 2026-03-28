@@ -77,6 +77,8 @@ We also thank Shan Carter and Daniel Smilkov,
 [Google People + AI Research (PAIR)](https://pair.withgoogle.com), and 
 [Georgia Tech Visualization Lab](http://vis.gatech.edu/)
 for their feedback.
+
+[Chinese Video Tutorial](https://www.bilibili.com/video/BV1R44y1377T)
  
 For more information, check out 
 [our research paper](http://minsuk.com/papers/kahng-ganlab-vis2018.pdf):     
@@ -86,6 +88,7 @@ For more information, check out
 [Polo Chau](https://poloclub.github.io/polochau/),
 [Fernanda Viégas](http://www.fernandaviegas.com/), and 
 [Martin Wattenberg](http://www.bewitched.com/).
+
 "GAN Lab: Understanding Complex Deep Generative Models using Interactive Visual Experimentation."
 *IEEE Transactions on Visualization and Computer Graphics, 25(1) (VIS 2018)*, Jan. 2019.
 [doi.org/10.1109/TVCG.2018.2864500](https://doi.org/10.1109/TVCG.2018.2864500)
